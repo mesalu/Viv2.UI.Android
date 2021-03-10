@@ -2,8 +2,11 @@ package com.mesalu.viv2.android_ui.ui.login;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
+import android.content.Context;
+import android.util.Log;
 import android.util.Patterns;
 
 import com.mesalu.viv2.android_ui.data.LoginRepository;
@@ -17,8 +20,29 @@ public class LoginViewModel extends ViewModel {
     private MutableLiveData<LoginResult> loginResult = new MutableLiveData<>();
     private LoginRepository loginRepository;
 
+    private Observer<LoggedInUser> loggedInUserObserver;
+
     LoginViewModel(LoginRepository loginRepository) {
         this.loginRepository = loginRepository;
+        this .loggedInUserObserver = new Observer<LoggedInUser>() {
+            @Override
+            public void onChanged(LoggedInUser loggedInUser) {
+                if (loggedInUser != null)
+                    loginResult.setValue(new LoginResult(new LoggedInUserView(loggedInUser.getDisplayName())));
+                else {
+                    // changing to null could be indicative of errors,
+                    // however it would also catch when the data is first assigned.
+                    loginResult.setValue(new LoginResult(R.string.login_failed));
+                }
+            }
+        };
+        loginRepository.assignObserver(loggedInUserObserver);
+    }
+
+    @Override
+    protected void onCleared() {
+        loginRepository.removeObserver(loggedInUserObserver);
+        super.onCleared();
     }
 
     LiveData<LoginFormState> getLoginFormState() {
@@ -29,16 +53,9 @@ public class LoginViewModel extends ViewModel {
         return loginResult;
     }
 
-    public void login(String username, String password) {
-        // can be launched in a separate asynchronous job
-        Result<LoggedInUser> result = loginRepository.login(username, password);
-
-        if (result instanceof Result.Success) {
-            LoggedInUser data = ((Result.Success<LoggedInUser>) result).getData();
-            loginResult.setValue(new LoginResult(new LoggedInUserView(data.getDisplayName())));
-        } else {
-            loginResult.setValue(new LoginResult(R.string.login_failed));
-        }
+    public void login(Context context, String username, String password) {
+        // Results handled synchronously via a convoluted daisy chain of main-thread callbacks.
+        loginRepository.login(context, username, password);
     }
 
     public void loginDataChanged(String username, String password) {

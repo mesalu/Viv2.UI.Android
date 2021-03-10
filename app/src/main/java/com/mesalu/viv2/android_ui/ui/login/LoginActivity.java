@@ -2,6 +2,7 @@ package com.mesalu.viv2.android_ui.ui.login;
 
 import android.app.Activity;
 
+import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -52,6 +53,10 @@ public class LoginActivity extends AppCompatActivity {
         final Button loginButton = findViewById(R.id.login);
         final ProgressBar loadingProgressBar = findViewById(R.id.loading);
 
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar.setTitle(R.string.action_sign_in);
+        setSupportActionBar(toolbar);
+
         loginViewModel.getLoginFormState().observe(this, new Observer<LoginFormState>() {
             @Override
             public void onChanged(@Nullable LoginFormState loginFormState) {
@@ -80,11 +85,11 @@ public class LoginActivity extends AppCompatActivity {
                 }
                 if (loginResult.getSuccess() != null) {
                     updateUiWithUser(loginResult.getSuccess());
-                }
-                setResult(Activity.RESULT_OK);
+                    setResult(Activity.RESULT_OK);
 
-                //Complete and destroy login activity once successful
-                finish();
+                    //Complete and destroy login activity once successful
+                    finish();
+                }
             }
         });
 
@@ -112,7 +117,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    loginViewModel.login(usernameEditText.getText().toString(),
+                    loginViewModel.login(LoginActivity.this, usernameEditText.getText().toString(),
                             passwordEditText.getText().toString());
                 }
                 return false;
@@ -124,41 +129,8 @@ public class LoginActivity extends AppCompatActivity {
             public void onClick(View v) {
                 loadingProgressBar.setVisibility(View.VISIBLE);
 
-                //loginViewModel.login(usernameEditText.getText().toString(),
-                //        passwordEditText.getText().toString());
-
-                String username = usernameEditText.getText().toString();
-                String password = passwordEditText.getText().toString();
-                String url = "https://192.168.0.10:5001/api/login";
-
-                JSONObject loginObject = new JSONObject();
-                try {
-                    loginObject.put("username", username);
-                    loginObject.put("password", password);
-
-                    Log.d("LA", "Set up login object");
-                }
-                catch (JSONException e) {
-                    // no big deal?
-                    Log.d("LA", "Failed to set up login object");
-                }
-
-                HttpClient client = HttpClient.getInstance(LoginActivity.this);
-                JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST,
-                        url,
-                        loginObject,
-                        response -> {
-                            Log.d("LA", "Login result: " + response.toString());
-                            loadingProgressBar.setVisibility(View.GONE);
-                        },
-                        error -> {
-                            // TODO: Handle error
-                            Log.d("LA", "Error when making request! " + error.toString());
-                            loadingProgressBar.setVisibility(View.GONE);
-                        });
-
-                client.add(request);
-                Log.d("LA", "added request to queue!");
+                loginViewModel.login(LoginActivity.this, usernameEditText.getText().toString(),
+                        passwordEditText.getText().toString());
             }
         });
     }

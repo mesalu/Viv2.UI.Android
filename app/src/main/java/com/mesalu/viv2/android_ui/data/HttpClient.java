@@ -6,6 +6,7 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.HurlStack;
 import com.android.volley.toolbox.Volley;
+import com.mesalu.viv2.android_ui.BuildConfig;
 import com.mesalu.viv2.android_ui.R;
 
 import java.io.IOException;
@@ -64,7 +65,14 @@ public class HttpClient {
         //      instantiation. If there are errors where this member is null where it should
         //      not be, then taking an approach in-line with the example would be the thing
         //      to do.
-        requestQueue = Volley.newRequestQueue(ctx, new HostNamePermissiveHurlStack(null, newSslSocketFactory()));
+        HurlStack hurlStack;
+        if (BuildConfig.DEBUG) {
+            hurlStack = new HostNamePermissiveHurlStack(null, newSslSocketFactory());
+            requestQueue = Volley.newRequestQueue(ctx, hurlStack);
+        }
+        else {
+            requestQueue = Volley.newRequestQueue(ctx);
+        }
     }
 
     public static synchronized HttpClient getInstance(Context context) {
@@ -73,8 +81,12 @@ public class HttpClient {
         return instance;
     }
 
-    // Creates a socket factory configured to trust self-signed keys stored in res.raw.dev_keystore.
+    /**
+     * Creates a socket factory configured to trust self-signed keys stored in res.raw.dev_keystore.
+     * Only for non-release builds
+     */
     private SSLSocketFactory newSslSocketFactory() {
+        if (!BuildConfig.DEBUG) return null;
         try {
             // Get an instance of the Bouncy Castle KeyStore format
             KeyStore trusted = KeyStore.getInstance("PKCS12");

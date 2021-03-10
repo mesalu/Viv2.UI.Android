@@ -1,5 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Basic theme components -->
+    <color name="colorPrimary">#474948</color>
+    <color name="colorPrimaryDark">#292929</color>
+    <color name="colorAccent">#D88916</color>
+    <color name="colorSecondary">#D88916</color>
+    <color name="colorOnSecondary">#474948</color>
+
+    <!-- Login template defaults -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
