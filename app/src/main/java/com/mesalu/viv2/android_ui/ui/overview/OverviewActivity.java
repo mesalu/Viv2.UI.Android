@@ -1,4 +1,4 @@
-package com.mesalu.viv2.android_ui.ui;
+package com.mesalu.viv2.android_ui.ui.overview;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
