@@ -17,3 +17,4 @@ gradle/*
 gradlew
 gradlew.bat
 .idea/*
+keystore.properties

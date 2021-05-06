@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<level-list
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:drawable="@drawable/led_status_bad"
+        android:maxLevel="0" />
+    <item
+        android:drawable="@drawable/led_status_warn"
+        android:maxLevel="1" />
+
+    <item
+        android:drawable="@drawable/led_status_good"
+        android:maxLevel="2" />
+
+</level-list>

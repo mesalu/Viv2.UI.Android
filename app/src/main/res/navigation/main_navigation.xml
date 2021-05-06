@@ -1,0 +1,18 @@
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/navigation_pet">
+
+    <fragment
+        android:id="@+id/navigation_pet"
+        android:name="com.mesalu.viv2.android_ui.ui.overview.PetReviewFragment"
+        android:label="@string/title_pet"
+        tools:layout="@layout/fragment_pet_review" />
+
+    <fragment
+        android:id="@+id/navigation_env"
+        android:name="com.mesalu.viv2.android_ui.ui.overview.EnvironmentReviewFragment"
+        android:label="@string/title_env"
+        tools:layout="@layout/fragment_environment_review" />
+</navigation>

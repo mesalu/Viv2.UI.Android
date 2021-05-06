@@ -13,6 +13,22 @@ buildscript {
 }
 
 allprojects {
+    afterEvaluate {
+        // Load a keystore properties file that is omitted from version control (so we don't
+        // need to include sensitive strings in version control.)
+        def keystoreInfoFile = rootProject.file("keystore.properties");
+        def keystoreProps = new Properties()
+
+
+        if (keystoreInfoFile.exists() && project.hasProperty("android") && android.signingConfigs.hasProperty('release')) {
+            keystoreProps.load(new FileInputStream(keystoreInfoFile))
+            android.signingConfigs['release'].storeFile = file(keystoreProps['storeFile'])
+            android.signingConfigs['release'].storePassword = keystoreProps['storePassword']
+            android.signingConfigs['release'].keyAlias = keystoreProps['keyAlias']
+            android.signingConfigs['release'].keyPassword = keystoreProps['keyPassword']
+        }
+    }
+
     repositories {
         google()
         jcenter()

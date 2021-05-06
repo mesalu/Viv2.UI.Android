@@ -18,7 +18,7 @@ public class LoginViewModelFactory implements ViewModelProvider.Factory {
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(LoginViewModel.class)) {
             // TODO: use DI or some other service resolver to acquire the data source instance.
-            return (T) new LoginViewModel(LoginRepository.getInstance(new LoginDataSource()));
+            return (T) new LoginViewModel(LoginRepository.getInstance());
         } else {
             throw new IllegalArgumentException("Unknown ViewModel class");
         }

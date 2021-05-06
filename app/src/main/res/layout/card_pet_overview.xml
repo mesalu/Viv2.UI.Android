@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/main_card_padding"
+    android:layout_margin="@dimen/main_card_padding"
+    app:cardCornerRadius="@dimen/main_card_corner_radius">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/card_menu_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ic_baseline_menu_24"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/name_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/main_card_title_font_size"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/card_menu_button"
+            tools:text="Pet Name here"/>
+
+        <TextView
+            android:id="@+id/species_name_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/name_view"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/morph_view"
+            tools:text="Species Name" />
+
+        <TextView
+            android:id="@+id/morph_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@id/name_view"
+            app:layout_constraintStart_toEndOf="@id/species_name_view"
+            app:layout_constraintEnd_toStartOf="@id/card_menu_button"
+            tools:text="Morph Name here"/>
+
+        <com.mesalu.viv2.android_ui.ui.widgets.LedValueView
+            android:id="@+id/hg_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/hm_view"
+            app:layout_constraintTop_toBottomOf="@id/species_name_view" />
+
+        <com.mesalu.viv2.android_ui.ui.widgets.LedValueView
+            android:id="@+id/hm_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toEndOf="@id/hg_view"
+            app:layout_constraintEnd_toStartOf="@id/mg_view"
+            app:layout_constraintTop_toBottomOf="@id/species_name_view"
+            />
+
+        <com.mesalu.viv2.android_ui.ui.widgets.LedValueView
+            android:id="@+id/mg_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toEndOf="@id/hm_view"
+            app:layout_constraintEnd_toStartOf="@id/cg_view"
+            app:layout_constraintTop_toBottomOf="@id/species_name_view"
+            />
+
+        <com.mesalu.viv2.android_ui.ui.widgets.LedValueView
+            android:id="@+id/cg_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toEndOf="@id/mg_view"
+            app:layout_constraintEnd_toStartOf="@id/cm_view"
+            app:layout_constraintTop_toBottomOf="@id/species_name_view"
+            />
+
+        <com.mesalu.viv2.android_ui.ui.widgets.LedValueView
+            android:id="@+id/cm_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toEndOf="@id/cg_view"
+            app:layout_constraintEnd_toStartOf="@id/card_menu_button"
+            app:layout_constraintTop_toBottomOf="@id/species_name_view"
+            />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

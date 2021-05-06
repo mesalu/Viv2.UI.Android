@@ -13,4 +13,18 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
+
+    <string name="title_pet">Pets</string>
+    <string name="title_env">Environment</string>
+
+    <!-- Chart labels -->
+    <string name="chart_therm_hot_glass_label">Hot-side Glass</string>
+    <string name="chart_therm_hot_mat_label">Hot-side Mat</string>
+    <string name="chart_therm_mid_glass_label">Mid Glass</string>
+    <string name="chart_therm_cold_glass_label">Cold-side Glass</string>
+    <string name="chart_therm_cold_mat_label">Cold-side Glass</string>
+
+
+    <!-- Misc labels -->
+    <string name="na_entry">N/a</string>
 </resources>

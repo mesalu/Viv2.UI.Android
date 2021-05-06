@@ -15,4 +15,17 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Line chart color values, pulled from the Material 800 palette -->
+    <color name="chart_therm_hot_glass">#C62828</color>
+    <color name="chart_therm_hot_mat">#D84315</color>
+    <color name="chart_therm_mid_glass">#6A1B9A</color>
+    <color name="chart_therm_cold_glass">#4527A0</color>
+    <color name="chart_therm_cold_mat">#1565C0</color>
+
+    <!-- LED widget colors -->
+    <color name="led_edge">#474948</color>
+    <color name="led_good">#2E7D32</color>
+    <color name="led_warn">#F9A825</color>
+    <color name="led_bad">#D84315</color>
 </resources>

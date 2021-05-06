@@ -1,27 +1,23 @@
 package com.mesalu.viv2.android_ui.data;
 
-import android.content.Context;
 import android.util.Log;
-import android.view.View;
 
-import com.android.volley.Request;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.mesalu.viv2.android_ui.data.model.LoggedInUser;
-import com.mesalu.viv2.android_ui.ui.login.LoginActivity;
+import com.mesalu.viv2.android_ui.data.http.ClientFactory;
+import com.mesalu.viv2.android_ui.data.http.ILoginClient;
+import com.mesalu.viv2.android_ui.data.model.TokenSet;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * Class that handles authentication w/ login credentials and retrieves user information.
+ *
+ * TODO: convert to interface or deprecate & merge into data-acquisition stuff.
  */
+@Deprecated
 public class LoginDataSource {
     public interface LoginEventListener {
-        void onSuccess(Result<LoggedInUser> user);
-        void onFailure(Result.Error error);
+        void onSuccess(Result<TokenSet> userTokens);
+        void onLoginFailure(Result.Error error);
     }
 
     protected LoginEventListener listener;
@@ -31,64 +27,25 @@ public class LoginDataSource {
      *
      * Success/failure is communicated back out via the configured LoginEventListener.
      *
-     * @param context android context, required for getting an HttpClient.
      * @param username self explanatory.
      * @param password self explanatory.
      */
-    public void login(Context context, String username, String password) {
+    public void login(String username, String password) {
         try {
-            String url = "https://192.168.0.10:5001/api/login";
-
-            JSONObject loginObject = new JSONObject();
-            try {
-                loginObject.put("username", username);
-                loginObject.put("password", password);
-
-                Log.d("LDS", "Set up login object");
-            }
-            catch (JSONException e) {
-                // no big deal?
-                Log.d("LDS", "Failed to set up login object");
-            }
-
-            HttpClient client = HttpClient.getInstance(context);
-            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST,
-                    url,
-                    loginObject,
-                    response -> {
-                        Log.d("LDS", "Login result: " + response.toString());
-                        try {
-                            UUID userId = UUID.fromString(response.getString("userId"));
-                            String displayName = response.getString("displayName");
-                            String token = response.getString("token");
-
-                            LoggedInUser user = new LoggedInUser(
-                                    userId,
-                                    displayName,
-                                    token
-                            );
-
-                            if (listener != null)
-                                listener.onSuccess(new Result.Success<>(user));
-                        }
-                        catch (JSONException exc) {
-                            Log.e("LDS", "Malformed login result object");
-                            if (listener != null) listener.onFailure(new Result.Error(exc));
-                        }
+            ILoginClient loginClient = ClientFactory.getLoginClient();
+            loginClient.login(username, password,
+                    tokenSet -> {
+                        if (listener != null)
+                            listener.onSuccess(new Result.Success<>(tokenSet));
                     },
-                    error -> {
-                        // TODO: Handle error
-                        Log.d("LDS", "Error when making request! " + error.toString());
-                        if (listener != null) {
-                            listener.onFailure(new Result.Error(error));
-                        }
+                    throwable -> {
+                        if (listener != null) listener.onLoginFailure(new Result.Error(throwable));
                     });
-
-            client.add(request);
-            Log.d("LDS", "added request to queue!");
         } catch (Exception e) {
+            Log.e("LDS", "blegh");
+            Log.e("LDS", e.toString());
             if (listener != null)
-                listener.onFailure(new Result.Error(e));
+                listener.onLoginFailure(new Result.Error(e));
         }
     }
 
@@ -98,5 +55,22 @@ public class LoginDataSource {
 
     public void logout() {
         // TODO: revoke authentication
+    }
+
+    public void refresh() {
+        refresh(null);
+    }
+
+    public void refresh(Consumer<Throwable> onError) {
+        ILoginClient client = ClientFactory.getLoginClient();
+        client.refresh(tokenSet -> {
+                    // new token set, woo!
+                    if (listener != null)
+                        listener.onSuccess(new Result.Success<>(tokenSet));
+                },
+                throwable -> {
+                    if (onError != null)
+                        onError.accept(throwable);
+                });
     }
 }
