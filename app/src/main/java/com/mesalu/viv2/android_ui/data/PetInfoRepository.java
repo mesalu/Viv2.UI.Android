@@ -2,7 +2,9 @@ package com.mesalu.viv2.android_ui.data;
 
 import com.mesalu.viv2.android_ui.data.http.ClientFactory;
 import com.mesalu.viv2.android_ui.data.http.IDataAccessClient;
+import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
+import com.mesalu.viv2.android_ui.data.model.Species;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -48,4 +50,31 @@ public class PetInfoRepository {
         accessClient.getPreliminaryPetInfo(petId, callback);
     }
 
+    public void getSpeciesInfo(Consumer<List<Species>> callback) {
+        accessClient.getSpeciesList(callback);
+    }
+
+    /**
+     * Asynchronously add Pet to backend
+     * When complete, the master pet ID list will be updated and a callback will be made via `callback`.
+     *
+     * @param pet
+     * @param callback
+     */
+    public void addPetAndUpdateAll(Pet pet, Consumer<List<Integer>> callback) {
+        // add via access client
+        accessClient.addPet(pet, unused -> getPetIdList(callback));
+    }
+
+    /**
+     * Asynchronously adds pet to backend, when complete callback is invoked on a pet
+     * instance with the ID set appropriately - or null in case of failure.
+     *
+     * @param pet
+     * @param callback
+     */
+    public void addPet(Pet pet, Consumer<Pet> callback) {
+        accessClient.addPet(pet, callback);
+
+    }
 }

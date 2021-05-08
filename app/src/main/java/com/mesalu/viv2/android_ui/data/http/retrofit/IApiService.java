@@ -1,16 +1,19 @@
 package com.mesalu.viv2.android_ui.data.http.retrofit;
 
 import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
+import com.mesalu.viv2.android_ui.data.model.NewPetForm;
 import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
+import com.mesalu.viv2.android_ui.data.model.Species;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import retrofit2.Call;
+import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.HeaderMap;
+import retrofit2.http.POST;
 import retrofit2.http.Path;
 
 /**
@@ -36,4 +39,9 @@ public interface IApiService {
     @GET("pet/{id}/prelim")
     Call<PreliminaryPetInfo> getPreliminaryInfo(@HeaderMap Map<String, String> headers, @Path("id") int id);
 
+    @GET("species")
+    Call<List<Species>> getSpeciesInfo(@HeaderMap Map<String, String> headers);
+
+    @POST("pet/add")
+    Call<Integer> addPet(@HeaderMap Map<String, String> headers, @Body NewPetForm form);
 }

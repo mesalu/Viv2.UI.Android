@@ -1,45 +1,52 @@
 package com.mesalu.viv2.android_ui.ui.overview;
 
-import android.content.Context;
-import android.util.Log;
-
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
-import com.mesalu.viv2.android_ui.data.LoginRepository;
 import com.mesalu.viv2.android_ui.data.PetInfoRepository;
-import com.mesalu.viv2.android_ui.data.http.ClientFactory;
 import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
 import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
-import com.mesalu.viv2.android_ui.data.model.TokenSet;
+import com.mesalu.viv2.android_ui.data.model.Species;
+import com.mesalu.viv2.android_ui.ui.events.ConsumableEvent;
+import com.mesalu.viv2.android_ui.ui.events.SimpleEvent;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PetReviewViewModel extends ViewModel {
+public class PetInfoViewModel extends ViewModel {
     // all Ids of pets associated to the user
     private MutableLiveData<List<Integer>> petIds;
 
     // instances of Pet for each pet associated to user
     private MutableLiveData<List<Pet>> pets;
 
+    private MutableLiveData<List<Species>> species;
+
     // contains all samples from the past week
     private MutableLiveData<List<EnvDataSample>> thisWeeksSamples;
 
+    // contains "preliminary info" objects of tracked pets.
     private Map<Integer, MutableLiveData<PreliminaryPetInfo>> preliminaryInfo;
+
+    // this one seems pretty hacky, but was an overall better approach than alternatives
+    // this live data is used by the controlling activity to signal the data-presenter (e.g.
+    // PetReviewFragment) to display some mechanism for entering a new pet.
+    private MutableLiveData<SimpleEvent> signalFabPress;
 
     private PetInfoRepository repository;
 
-    public PetReviewViewModel() {
+    public PetInfoViewModel() {
         repository = PetInfoRepository.getInstance();
         pets = new MutableLiveData<>();
+        species = new MutableLiveData<>();
         petIds = new MutableLiveData<>();
         preliminaryInfo = new HashMap<>();
+        signalFabPress = new MutableLiveData<>();
     }
 
     /**
@@ -59,7 +66,16 @@ public class PetReviewViewModel extends ViewModel {
         repository.getPetIdList(ids -> petIds.setValue(ids));
     }
 
-    public LiveData<List<Integer>> getIdObservable() {
+    public LiveData<List<Species>> getSpeciesObservable() {
+        if (species.getValue() == null) {
+            // TODO: or if its particularly out of date.
+            fetchSpeciesList();
+        }
+
+        return species;
+    }
+
+    public LiveData<List<Integer>> getIdsObservable() {
         return petIds;
     }
 
@@ -98,5 +114,25 @@ public class PetReviewViewModel extends ViewModel {
 
     public LiveData<List<Pet>> getPetListObservable() {
         return pets;
+    }
+
+    public LiveData<SimpleEvent> getFabSignal() {
+        return signalFabPress;
+    }
+
+    public void submitNewPet(Pet pet) {
+        // pass down to Repo, request repo update.
+        repository.addPetAndUpdateAll(pet, ids -> petIds.setValue(ids));
+    }
+
+    /**
+     * Called when the FAB has been pressed, notifies listeners of the signal.
+     */
+    public void signalFabEvent() {
+        signalFabPress.setValue(new SimpleEvent());
+    }
+
+    private void fetchSpeciesList() {
+        PetInfoRepository.getInstance().getSpeciesInfo(s -> species.setValue(s));
     }
 }

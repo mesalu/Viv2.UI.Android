@@ -21,14 +21,13 @@ import com.mesalu.viv2.android_ui.R;
 import com.mesalu.viv2.android_ui.data.LoginRepository;
 import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
 import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
-import com.mesalu.viv2.android_ui.ui.login.LoginViewModel;
+import com.mesalu.viv2.android_ui.ui.overview.data_entry.PetEntryDialogFragment;
 import com.mesalu.viv2.android_ui.ui.widgets.LedValueView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PetReviewFragment extends Fragment {
-    private PetReviewViewModel viewModel;
+    private PetInfoViewModel viewModel;
 
     public static PetReviewFragment newInstance() {
         return new PetReviewFragment();
@@ -59,12 +58,12 @@ public class PetReviewFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        viewModel = new ViewModelProvider(this).get(PetReviewViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(PetInfoViewModel.class);
 
         final ProgressBar progressBar = getView().findViewById(R.id.loading);
         progressBar.setVisibility(View.VISIBLE);
 
-        viewModel.getIdObservable().observe(getViewLifecycleOwner(), idList -> {
+        viewModel.getIdsObservable().observe(getViewLifecycleOwner(), idList -> {
             for (Integer i : idList) Log.d("PRF", "Got id: " + i.toString());
 
             // attach an adapter to the recycler view.
@@ -74,6 +73,15 @@ public class PetReviewFragment extends Fragment {
 
             // hide the loading bar
             progressBar.setVisibility(View.GONE);
+        });
+
+        viewModel.getFabSignal().observe(getViewLifecycleOwner(), event -> {
+            if (event.consume()) {
+                // start a data entry dialog?
+                Log.d("PRF", "Fab handler notified");
+                new PetEntryDialogFragment()
+                        .show(getChildFragmentManager(), PetEntryDialogFragment.TAG);
+            }
         });
 
         if (LoginRepository.getInstance().isLoggedIn())

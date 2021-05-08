@@ -1,6 +1,7 @@
 package com.mesalu.viv2.android_ui.ui.overview;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -72,15 +73,26 @@ public class OverviewActivity extends AppCompatActivity {
                 R.id.navigation_pet, R.id.navigation_env)
                 .build();
 
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        final NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(v -> {
-            Snackbar snackbar = Snackbar
-                    .make(findViewById(R.id.fab), "Fab: Hello world", Snackbar.LENGTH_SHORT);
-            snackbar.show();
+            if (navController.getCurrentDestination() == null) return;
+
+            int id = navController.getCurrentDestination().getId();
+            if (id == R.id.navigation_pet) {
+                Log.d("OA", "FAB pressed with pet fragment on");
+                new ViewModelProvider(this).get(PetInfoViewModel.class).signalFabEvent();
+            }
+            else if (id == R.id.navigation_env)
+                Log.d("OA", "FAB pressed with env fragment on");
+            else {
+                Snackbar snackbar = Snackbar
+                        .make(v, "Fab: Hello world", Snackbar.LENGTH_SHORT);
+                snackbar.show();
+            }
         });
     }
 
@@ -125,9 +137,7 @@ public class OverviewActivity extends AppCompatActivity {
                 // schedule a refresh for just before it expires.
                 scheduleRefreshForExpiry(accessExpiry);
             }
-
         }
-
     }
 
     private void stopSilentRefreshCycle() {

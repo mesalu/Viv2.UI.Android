@@ -25,6 +25,17 @@
     <string name="chart_therm_cold_mat_label">Cold-side Glass</string>
 
 
-    <!-- Misc labels -->
+    <!-- Misc labels/titles/etc. -->
     <string name="na_entry">N/a</string>
+    <string name="species_entry_label">Species</string>
+    <string name="name_entry_hint">Name</string>
+    <string name="morph_entry_hint">Morph</string>
+    <string name="dialog_title_pet_entry">Create New Pet</string>
+
+    <!-- generic button labels. -->
+    <string name="ok">OK</string>
+    <string name="submit">Submit</string>
+    <string name="apply">Apply</string>
+    <string name="cancel">Cancel</string>
+
 </resources>

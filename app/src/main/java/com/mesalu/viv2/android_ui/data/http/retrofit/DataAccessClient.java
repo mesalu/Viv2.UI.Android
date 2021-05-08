@@ -7,8 +7,10 @@ import androidx.annotation.NonNull;
 import com.mesalu.viv2.android_ui.data.LoginRepository;
 import com.mesalu.viv2.android_ui.data.http.IDataAccessClient;
 import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
+import com.mesalu.viv2.android_ui.data.model.NewPetForm;
 import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
+import com.mesalu.viv2.android_ui.data.model.Species;
 import com.mesalu.viv2.android_ui.data.model.TokenSet;
 
 import java.time.format.DateTimeFormatter;
@@ -74,6 +76,44 @@ public class DataAccessClient implements IDataAccessClient {
         new Retrier<PreliminaryPetInfo>()
                 .withCall(call)
                 .withCallback(_callbackFromFunction(callback))
+                .proceed();
+    }
+
+    @Override
+    public void getSpeciesList(Consumer<List<Species>> callback) {
+        TokenSet tokens = LoginRepository.getInstance().getTokens();
+
+        new Retrier<List<Species>>()
+                .withCall(_clientService.getSpeciesInfo(_headersFromTokens(tokens)))
+                .withCallback(_callbackFromFunction(callback))
+                .proceed();
+    }
+
+    @Override
+    public void addPet(final Pet pet, Consumer<Pet> callback) {
+        // convert to "NewPetForm" dto - API side.
+        TokenSet tokens = LoginRepository.getInstance().getTokens();
+
+        // convert pet to NewPetForm:
+        NewPetForm form = new NewPetForm();
+        form.setName(pet.getName());
+        form.setMorph(pet.getMorph());
+        form.setSpeciesId(pet.getSpecies().getId());
+
+        new Retrier<Integer>()
+                .withCall(_clientService.addPet(_headersFromTokens(tokens), form))
+                .withCallback(new Callback<Integer>() {
+                    @Override
+                    public void onResponse(Call<Integer> call, Response<Integer> response) {
+                        pet.setId(response.body());
+                        callback.accept(pet);
+                    }
+
+                    @Override
+                    public void onFailure(Call<Integer> call, Throwable t) {
+                        callback.accept(null);
+                    }
+                })
                 .proceed();
     }
 
