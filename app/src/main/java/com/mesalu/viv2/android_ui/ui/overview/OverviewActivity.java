@@ -1,5 +1,6 @@
 package com.mesalu.viv2.android_ui.ui.overview;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
@@ -40,6 +41,8 @@ public class OverviewActivity extends AppCompatActivity {
     //       So that will be a bug to be on the lookout for.
     private ScheduledExecutorService executorService;
 
+    private static int LOGIN_REQUEST_CODE = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,7 +64,7 @@ public class OverviewActivity extends AppCompatActivity {
         // if we're not logged in at all, then hand off to the login activity.
         if (!LoginRepository.getInstance().isLoggedIn()) {
             Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
+            startActivityForResult(intent, LOGIN_REQUEST_CODE);
         }
 
         BottomNavigationView navView = findViewById(R.id.nav_view);
@@ -117,6 +120,17 @@ public class OverviewActivity extends AppCompatActivity {
         }
         else {
             Log.d("OA", "Resumed with no tokens, awaiting LoginActivity success");
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == LOGIN_REQUEST_CODE) {
+            // if the login activity was canceled then finish.
+            if (resultCode != RESULT_OK) finish();
+        }
+        else {
+            super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
