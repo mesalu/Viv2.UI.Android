@@ -26,6 +26,12 @@
 
 
     <!-- Misc labels/titles/etc. -->
+    <string name="nyi_short">NYI</string>
+    <string name="nyi_long">Not Yet Implemented</string>
+    <string name="occupant_name_label">Occupant</string>
+    <string name="model_label">Model</string>
+    <string name="controller_version_label">Version</string>
+    <string name="system_type_label">System</string>
     <string name="na_entry">N/a</string>
     <string name="species_entry_label">Species</string>
     <string name="name_entry_hint">Name</string>
@@ -37,5 +43,9 @@
     <string name="submit">Submit</string>
     <string name="apply">Apply</string>
     <string name="cancel">Cancel</string>
+
+    <!-- Filler values -->
+    <string name="lorem_ipsum_1para">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi semper auctor ipsum sit amet congue. Suspendisse vehicula iaculis ante, vel accumsan sem ullamcorper dignissim. Morbi sollicitudin aliquet purus, eu porttitor mauris mattis eu. Sed egestas, velit eleifend lobortis tempus, metus purus dapibus nisl, vulputate fermentum odio libero id leo. Mauris pretium tincidunt mi, vitae tempor felis molestie nec. Donec vehicula, nunc pellentesque commodo dapibus, lacus neque aliquet arcu, nec facilisis sem mi mattis dui. Quisque ultricies venenatis commodo. Vivamus id maximus mi, feugiat pellentesque mauris.</string>
+    <string name="lorem_ipsum_2sentences">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi semper auctor ipsum sit amet congue.</string>
 
 </resources>

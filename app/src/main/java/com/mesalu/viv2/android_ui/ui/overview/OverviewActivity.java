@@ -84,10 +84,12 @@ public class OverviewActivity extends AppCompatActivity {
             int id = navController.getCurrentDestination().getId();
             if (id == R.id.navigation_pet) {
                 Log.d("OA", "FAB pressed with pet fragment on");
-                new ViewModelProvider(this).get(PetInfoViewModel.class).signalFabEvent();
+                new ViewModelProvider(this).get(PetInfoViewModel.class).signal();
             }
-            else if (id == R.id.navigation_env)
+            else if (id == R.id.navigation_env) {
                 Log.d("OA", "FAB pressed with env fragment on");
+                new ViewModelProvider(this).get(EnvironmentInfoViewModel.class).signal();
+            }
             else {
                 Snackbar snackbar = Snackbar
                         .make(v, "Fab: Hello world", Snackbar.LENGTH_SHORT);

@@ -9,6 +9,7 @@
     <dimen name='main_card_title_font_size'>18sp</dimen>
     <dimen name='main_card_subtitle_font_size'>14sp</dimen>
     <dimen name="main_card_corner_radius">8dp</dimen>
+    <dimen name="card_inner_element_pad">3dp</dimen>
 
     <dimen name="led_border_stroke_width">3dp</dimen>
 </resources>

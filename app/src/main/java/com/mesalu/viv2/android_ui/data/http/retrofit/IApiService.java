@@ -2,6 +2,7 @@ package com.mesalu.viv2.android_ui.data.http.retrofit;
 
 import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
 import com.mesalu.viv2.android_ui.data.model.NewPetForm;
+import com.mesalu.viv2.android_ui.data.model.NodeController;
 import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
 import com.mesalu.viv2.android_ui.data.model.Species;
@@ -44,4 +45,7 @@ public interface IApiService {
 
     @POST("pet/add")
     Call<Integer> addPet(@HeaderMap Map<String, String> headers, @Body NewPetForm form);
+
+    @GET("node/mine")
+    Call<List<NodeController>> getControllers(@HeaderMap Map<String, String> headers);
 }

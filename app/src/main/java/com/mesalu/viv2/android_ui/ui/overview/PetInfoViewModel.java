@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PetInfoViewModel extends ViewModel {
+public class PetInfoViewModel extends FabAwareViewModel {
     // all Ids of pets associated to the user
     private MutableLiveData<List<Integer>> petIds;
 
@@ -33,20 +33,16 @@ public class PetInfoViewModel extends ViewModel {
     // contains "preliminary info" objects of tracked pets.
     private Map<Integer, MutableLiveData<PreliminaryPetInfo>> preliminaryInfo;
 
-    // this one seems pretty hacky, but was an overall better approach than alternatives
-    // this live data is used by the controlling activity to signal the data-presenter (e.g.
-    // PetReviewFragment) to display some mechanism for entering a new pet.
-    private MutableLiveData<SimpleEvent> signalFabPress;
-
     private PetInfoRepository repository;
 
     public PetInfoViewModel() {
+        super();
+
         repository = PetInfoRepository.getInstance();
         pets = new MutableLiveData<>();
         species = new MutableLiveData<>();
         petIds = new MutableLiveData<>();
         preliminaryInfo = new HashMap<>();
-        signalFabPress = new MutableLiveData<>();
     }
 
     /**
@@ -116,20 +112,9 @@ public class PetInfoViewModel extends ViewModel {
         return pets;
     }
 
-    public LiveData<SimpleEvent> getFabSignal() {
-        return signalFabPress;
-    }
-
     public void submitNewPet(Pet pet) {
         // pass down to Repo, request repo update.
         repository.addPetAndUpdateAll(pet, ids -> petIds.setValue(ids));
-    }
-
-    /**
-     * Called when the FAB has been pressed, notifies listeners of the signal.
-     */
-    public void signalFabEvent() {
-        signalFabPress.setValue(new SimpleEvent());
     }
 
     private void fetchSpeciesList() {

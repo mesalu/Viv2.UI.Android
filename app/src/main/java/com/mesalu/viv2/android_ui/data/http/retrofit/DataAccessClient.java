@@ -8,6 +8,7 @@ import com.mesalu.viv2.android_ui.data.LoginRepository;
 import com.mesalu.viv2.android_ui.data.http.IDataAccessClient;
 import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
 import com.mesalu.viv2.android_ui.data.model.NewPetForm;
+import com.mesalu.viv2.android_ui.data.model.NodeController;
 import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
 import com.mesalu.viv2.android_ui.data.model.Species;
@@ -114,6 +115,16 @@ public class DataAccessClient implements IDataAccessClient {
                         callback.accept(null);
                     }
                 })
+                .proceed();
+    }
+
+    @Override
+    public void getControllerList(Consumer<List<NodeController>> callback) {
+        TokenSet tokens = LoginRepository.getInstance().getTokens();
+
+        new Retrier<List<NodeController>>()
+                .withCall(_clientService.getControllers(_headersFromTokens(tokens)))
+                .withCallback(_callbackFromFunction(callback))
                 .proceed();
     }
 
