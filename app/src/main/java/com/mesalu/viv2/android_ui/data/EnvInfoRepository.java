@@ -2,6 +2,7 @@ package com.mesalu.viv2.android_ui.data;
 
 import com.mesalu.viv2.android_ui.data.http.ClientFactory;
 import com.mesalu.viv2.android_ui.data.http.IDataAccessClient;
+import com.mesalu.viv2.android_ui.data.model.Environment;
 import com.mesalu.viv2.android_ui.data.model.NodeController;
 
 import java.util.List;
@@ -31,6 +32,10 @@ public class EnvInfoRepository {
      */
     public void getControllerList(Consumer<List<NodeController>> callback) {
         accessClient.getControllerList(callback);
+    }
+
+    public void getEnvironment(String id, Consumer<Environment> callback) {
+        accessClient.getEnvironment(id, callback);
     }
 
 }

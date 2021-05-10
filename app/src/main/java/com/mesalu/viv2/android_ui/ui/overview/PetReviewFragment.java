@@ -205,12 +205,9 @@ public class PetReviewFragment extends Fragment {
 
             viewModel.getPreliminaryPetInfo(petIds.get(position),
                     PetReviewFragment.this,
-                    new Observer<PreliminaryPetInfo>() {
-                        @Override
-                        public void onChanged(PreliminaryPetInfo preliminaryPetInfo) {
-                            Log.d("PRFA", "observer's onChanged called");
-                            holder.update(id, preliminaryPetInfo);
-                        }
+                    preliminaryPetInfo -> {
+                        Log.d("PRFA", "observer's onChanged called");
+                        holder.update(id, preliminaryPetInfo);
                     }
             );
         }

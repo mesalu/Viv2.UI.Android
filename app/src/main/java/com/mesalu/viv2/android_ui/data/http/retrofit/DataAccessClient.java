@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import com.mesalu.viv2.android_ui.data.LoginRepository;
 import com.mesalu.viv2.android_ui.data.http.IDataAccessClient;
 import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
+import com.mesalu.viv2.android_ui.data.model.Environment;
 import com.mesalu.viv2.android_ui.data.model.NewPetForm;
 import com.mesalu.viv2.android_ui.data.model.NodeController;
 import com.mesalu.viv2.android_ui.data.model.Pet;
@@ -128,6 +129,16 @@ public class DataAccessClient implements IDataAccessClient {
                 .proceed();
     }
 
+    @Override
+    public void getEnvironment(String id, Consumer<Environment> callback) {
+        TokenSet tokens = LoginRepository.getInstance().getTokens();
+
+        new Retrier<Environment>()
+                .withCall(_clientService.getEnvironmentInfo(_headersFromTokens(tokens), id))
+                .withCallback(_callbackFromFunction(callback))
+                .proceed();
+    }
+
     private Map<String, String> _headersFromTokens(TokenSet tokens) {
         HashMap<String, String> map = new HashMap<>();
         map.put("Authorization", "Bearer " + tokens.getAccessToken());
@@ -146,7 +157,7 @@ public class DataAccessClient implements IDataAccessClient {
                 else {
                     // TODO: limited retry via re-enqueuing call.
                     //       will require knowing how many times this request has been retried
-                    Log.e("DAC", "Request " + call.request().url() + "failed: status code = " + response.code());
+                    Log.e("DAC", "Request " + call.request().url() + " failed: status code = " + response.code());
                 }
             }
 

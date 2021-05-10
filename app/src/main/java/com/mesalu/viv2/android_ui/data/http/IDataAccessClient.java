@@ -1,6 +1,7 @@
 package com.mesalu.viv2.android_ui.data.http;
 
 import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
+import com.mesalu.viv2.android_ui.data.model.Environment;
 import com.mesalu.viv2.android_ui.data.model.NodeController;
 import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
@@ -23,4 +24,5 @@ public interface IDataAccessClient {
     void getSpeciesList(Consumer<List<Species>> callback);
     void addPet(Pet pet, Consumer<Pet> callback);
     void getControllerList(Consumer<List<NodeController>> callback);
+    void getEnvironment(String envId, Consumer<Environment> callback);
 }

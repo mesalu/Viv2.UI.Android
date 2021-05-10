@@ -1,6 +1,7 @@
 package com.mesalu.viv2.android_ui.data.http.retrofit;
 
 import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
+import com.mesalu.viv2.android_ui.data.model.Environment;
 import com.mesalu.viv2.android_ui.data.model.NewPetForm;
 import com.mesalu.viv2.android_ui.data.model.NodeController;
 import com.mesalu.viv2.android_ui.data.model.Pet;
@@ -48,4 +49,7 @@ public interface IApiService {
 
     @GET("node/mine")
     Call<List<NodeController>> getControllers(@HeaderMap Map<String, String> headers);
+
+    @GET("environment/{id}")
+    Call<Environment> getEnvironmentInfo(@HeaderMap Map<String, String> headers, @Path("id") String id);
 }

@@ -1,5 +1,6 @@
 package com.mesalu.viv2.android_ui.ui.overview;
 
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.os.Bundle;
@@ -12,20 +13,22 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.mesalu.viv2.android_ui.R;
+import com.mesalu.viv2.android_ui.data.model.Environment;
 import com.mesalu.viv2.android_ui.data.model.NodeController;
+import com.mesalu.viv2.android_ui.data.model.Pet;
+import com.mesalu.viv2.android_ui.ui.widgets.ControllerCard;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class EnvironmentReviewFragment extends Fragment {
 
-    private EnvironmentInfoViewModel mViewModel;
+    private EnvironmentInfoViewModel envInfoViewModel;
+    private PetInfoViewModel petInfoViewModel;
 
     public static EnvironmentReviewFragment newInstance() {
         return new EnvironmentReviewFragment();
@@ -40,13 +43,14 @@ public class EnvironmentReviewFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        mViewModel = new ViewModelProvider(requireActivity()).get(EnvironmentInfoViewModel.class);
+        envInfoViewModel = new ViewModelProvider(requireActivity()).get(EnvironmentInfoViewModel.class);
+        petInfoViewModel = new ViewModelProvider(requireActivity()).get(PetInfoViewModel.class);
 
         final RecyclerView recycler = requireView().findViewById(R.id.recycler_view);
         final ProgressBar progressBar = requireView().findViewById(R.id.loading);
         progressBar.setVisibility(View.VISIBLE);
 
-        mViewModel.getFabSignal().observe(getViewLifecycleOwner(), event -> {
+        envInfoViewModel.getFabSignal().observe(getViewLifecycleOwner(), event -> {
             if (event.consume()) {
                 Snackbar snackbar = Snackbar
                         .make(requireView(), R.string.nyi_long, Snackbar.LENGTH_SHORT);
@@ -54,7 +58,7 @@ public class EnvironmentReviewFragment extends Fragment {
             }
         });
 
-        mViewModel.getControllersObservable().observe(getViewLifecycleOwner(), nodeControllers -> {
+        envInfoViewModel.getControllersObservable().observe(getViewLifecycleOwner(), nodeControllers -> {
             // compose an adapter and assign it to recycler view.
             Adapter adapter = new Adapter(nodeControllers);
             recycler.setAdapter(adapter);
@@ -63,26 +67,36 @@ public class EnvironmentReviewFragment extends Fragment {
     }
 
     private static class ViewHolder extends RecyclerView.ViewHolder {
-        ViewHolder(View itemView) {
-            super(itemView);
+        // used to ensure only the most recent binding acts on the view
+        String pendingId;
+        ControllerCard cardView;
+
+        ViewHolder(ControllerCard cardView) {
+            super(cardView);
+
+            // to avoid constantly recasting this.itemView:
+            this.cardView = cardView;
         }
 
         public void bind(NodeController controller) {
-            // clear presentation elements.
-            ListView containerView = itemView.findViewById(R.id.env_container);
+            pendingId = controller.getId();
+            cardView.bind(controller);
+        }
 
-            if (controller.getEnvironmentIds().size() == 0)
-                containerView.setAdapter(null);
-            else {
-                // compose (perhaps even memoize? a list adapter.
-            }
+        public void onEnvironmentLoaded(String controllerId, int position, Environment env) {
+            // check if we got rebound before data transaction finished.
+            if (controllerId.compareTo(pendingId) != 0) return;
 
-            TextView tv = itemView.findViewById(R.id.guid);
-            tv.setText(controller.getId());
+            cardView.onEnvLoaded(position, env);
+        }
+
+        public void onPetNameLoaded(String controllerId, int position, String name) {
+            if (controllerId.compareTo(pendingId) != 0) return;
+            cardView.onInhabitantNameLoaded(position, name);
         }
     }
 
-    private static class Adapter extends RecyclerView.Adapter<ViewHolder> {
+    private class Adapter extends RecyclerView.Adapter<ViewHolder> {
         List<NodeController> controllers;
 
         public Adapter(List<NodeController> controllerList) {
@@ -92,15 +106,40 @@ public class EnvironmentReviewFragment extends Fragment {
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            final View rootView = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.card_controller_overview, parent, false);
+            ControllerCard card = new ControllerCard(parent.getContext());
 
-            return new ViewHolder(rootView);
+            card.setLayoutParams(new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            ));
+
+            return new ViewHolder(card);
         }
 
         @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            holder.bind(controllers.get(position));
+        public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
+            final NodeController controller = controllers.get(position);
+            holder.bind(controller);
+
+            // Set up callbacks for populating environment cards.
+            for (int i = 0; i < controller.getEnvironmentIds().size(); i++) {
+                final String envId = controller.getEnvironmentIds().get(i);
+
+                int finalI = i;
+                envInfoViewModel.observeEnvironmentOnce(envId,
+                        EnvironmentReviewFragment.this.getViewLifecycleOwner(),
+                        environment -> {
+                            holder.onEnvironmentLoaded(controller.getId(), finalI, environment);
+
+                            // now try to get the pet name:
+                            if (environment.getOccupantId() > 0) {
+                                LiveData<Pet> petObservable = petInfoViewModel.getPetObservable(environment.getOccupantId());
+                                petInfoViewModel.observeOnce(petObservable, getViewLifecycleOwner(), pet ->
+                                        holder.onPetNameLoaded(controller.getId(), finalI,pet.getName())
+                                );
+                            }
+                        });
+            }
         }
 
         @Override
@@ -108,5 +147,4 @@ public class EnvironmentReviewFragment extends Fragment {
             return controllers.size();
         }
     }
-
 }

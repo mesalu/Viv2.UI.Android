@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.mesalu.viv2.android_ui.ui.BaseViewModel;
 import com.mesalu.viv2.android_ui.ui.events.SimpleEvent;
 
 /**
@@ -15,7 +16,7 @@ import com.mesalu.viv2.android_ui.ui.events.SimpleEvent;
  * makes sense to have a base ViewModel that provides the groundwork for the real ViewModel
  * implementations.
  */
-public class FabAwareViewModel extends ViewModel {
+public class FabAwareViewModel extends BaseViewModel {
     protected MutableLiveData<SimpleEvent> fabEvent;
 
     protected FabAwareViewModel() {

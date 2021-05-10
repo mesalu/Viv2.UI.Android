@@ -50,6 +50,12 @@ public class PetInfoRepository {
         accessClient.getPreliminaryPetInfo(petId, callback);
     }
 
+    public void getPetInfo(int petId, Consumer<Pet> callback) {
+        // TODO: check if we've made a recent request for preliminary pet info on the same
+        //       ID (which should be likely) - if so, just extract the pet member from that.
+        accessClient.getPet(petId, callback);
+    }
+
     public void getSpeciesInfo(Consumer<List<Species>> callback) {
         accessClient.getSpeciesList(callback);
     }

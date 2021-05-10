@@ -23,7 +23,7 @@ public class PetInfoViewModel extends FabAwareViewModel {
     private MutableLiveData<List<Integer>> petIds;
 
     // instances of Pet for each pet associated to user
-    private MutableLiveData<List<Pet>> pets;
+    private Map<Integer, MutableLiveData<Pet>> pets;
 
     private MutableLiveData<List<Species>> species;
 
@@ -39,7 +39,7 @@ public class PetInfoViewModel extends FabAwareViewModel {
         super();
 
         repository = PetInfoRepository.getInstance();
-        pets = new MutableLiveData<>();
+        pets = new HashMap<>();
         species = new MutableLiveData<>();
         petIds = new MutableLiveData<>();
         preliminaryInfo = new HashMap<>();
@@ -108,8 +108,14 @@ public class PetInfoViewModel extends FabAwareViewModel {
         }
     }
 
-    public LiveData<List<Pet>> getPetListObservable() {
-        return pets;
+    public LiveData<Pet> getPetObservable(int id) {
+        if (!pets.containsKey(id)) {
+            final MutableLiveData<Pet> petObservable = new MutableLiveData<>();
+            pets.put(id, petObservable);
+            // request data load (Depend on repo for being aware enough to merge prelim & pet)
+            repository.getPetInfo(id, petObservable::setValue);
+        }
+        return pets.get(id);
     }
 
     public void submitNewPet(Pet pet) {
