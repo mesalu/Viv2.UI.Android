@@ -5,6 +5,7 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -28,12 +29,32 @@ import java.util.List;
  * logic.
  */
 public class ControllerCard extends MaterialCardView {
+
+    /**
+     * Callback interface for communicating actions this view can facilitate / emit.
+     */
+    public interface ControllerActionListener {
+
+        /**
+         * Called when a user takes an action (such as a menu action) to add a pet
+         * to an environment. The handler should facilitate allowing the user to
+         * select the pet & notifying the backend.
+         *
+         * @param controller the controller this card represents - and the one hosting the target
+         *                   environment
+         * @param environment the environment to add a pet to.
+         */
+        void onAddPetToEnv(NodeController controller, Environment environment);
+    }
+
     NodeController controller;
 
     TextView guidView;
     TextView systemView;
     TextView versionView;
     Adapter envCardAdapter;
+
+    ControllerActionListener listener;
 
     public ControllerCard(@NonNull Context context) {
         super(context);
@@ -49,6 +70,10 @@ public class ControllerCard extends MaterialCardView {
     public ControllerCard(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
+    }
+
+    public void setListener(ControllerActionListener listener) {
+        this.listener = listener;
     }
 
     public void bind(NodeController controller) {
@@ -95,18 +120,18 @@ public class ControllerCard extends MaterialCardView {
         }
     }
 
-    private static class EnvCardHolder extends RecyclerView.ViewHolder {
+    private class EnvCardHolder extends RecyclerView.ViewHolder {
         EnvCardHolder(View view) {
             super(view);
         }
 
-        public void onBind(EnvironmentHolder modelHolder) {
-            TextView guidView = itemView.findViewById(R.id.guid);
-            guidView.setText(modelHolder.envId);
+        public void onBind(EnvironmentHolder modelHolder, @Nullable ControllerActionListener listener) {
+            TextView tv = itemView.findViewById(R.id.guid);
+            tv.setText(modelHolder.envId);
 
             if (modelHolder.env != null) {
                 // populate all the sub fields.
-                TextView tv = itemView.findViewById(R.id.description);
+                tv = itemView.findViewById(R.id.description);
                 tv.setText(modelHolder.env.getDescription());
 
                 tv = itemView.findViewById(R.id.model);
@@ -114,15 +139,27 @@ public class ControllerCard extends MaterialCardView {
             }
             else {
                 // reset subviews & set the loading indicator.
+
             }
 
-            TextView tv = itemView.findViewById(R.id.occupant_name);
+            tv = itemView.findViewById(R.id.occupant_name);
             if (modelHolder.inhabitantName != null) {
                 tv.setText(modelHolder.inhabitantName);
             }
             else {
                 // reset & set loading indicator.
                 tv.setText("");
+            }
+
+            // Bind buttons to actions in listener:
+            ImageButton button = itemView.findViewById(R.id.card_main_button);
+            if (listener != null && modelHolder.env != null) {
+                button.setEnabled(true);
+                button.setOnClickListener(v -> listener.onAddPetToEnv(controller, modelHolder.env));
+            }
+            else {
+                button.setEnabled(false);
+                button.setOnClickListener(v -> {});
             }
         }
     }
@@ -162,7 +199,7 @@ public class ControllerCard extends MaterialCardView {
 
         @Override
         public void onBindViewHolder(@NonNull EnvCardHolder holder, int position) {
-            holder.onBind(modelHolders.get(position));
+            holder.onBind(modelHolders.get(position), listener);
         }
 
         @Override

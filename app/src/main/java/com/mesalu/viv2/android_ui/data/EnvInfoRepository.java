@@ -34,6 +34,10 @@ public class EnvInfoRepository {
         accessClient.getControllerList(callback);
     }
 
+    public void getEnvironmentList(Consumer<List<Environment>> callback) {
+        accessClient.getEnvironmentList(callback);
+    }
+
     public void getEnvironment(String id, Consumer<Environment> callback) {
         accessClient.getEnvironment(id, callback);
     }

@@ -40,7 +40,7 @@ public class DataAccessClient implements IDataAccessClient {
         TokenSet tokens = LoginRepository.getInstance().getTokens();
         new Retrier<List<Integer>>()
                 .withCall(_clientService.getPetIdList(_headersFromTokens(tokens)))
-                .withCallback(_callbackFromFunction(callback))
+                .withCallback(_callbackFromConsumer(callback))
                 .proceed();
     }
 
@@ -50,7 +50,7 @@ public class DataAccessClient implements IDataAccessClient {
 
         new Retrier<Pet>()
                 .withCall(_clientService.getPetById(_headersFromTokens(tokens), id))
-                .withCallback(_callbackFromFunction(callback))
+                .withCallback(_callbackFromConsumer(callback))
                 .proceed();
     }
 
@@ -65,7 +65,7 @@ public class DataAccessClient implements IDataAccessClient {
 
         new Retrier<List<EnvDataSample>>()
                 .withCall(call)
-                .withCallback(_callbackFromFunction(callback))
+                .withCallback(_callbackFromConsumer(callback))
                 .proceed();
     }
 
@@ -77,7 +77,7 @@ public class DataAccessClient implements IDataAccessClient {
 
         new Retrier<PreliminaryPetInfo>()
                 .withCall(call)
-                .withCallback(_callbackFromFunction(callback))
+                .withCallback(_callbackFromConsumer(callback))
                 .proceed();
     }
 
@@ -87,7 +87,7 @@ public class DataAccessClient implements IDataAccessClient {
 
         new Retrier<List<Species>>()
                 .withCall(_clientService.getSpeciesInfo(_headersFromTokens(tokens)))
-                .withCallback(_callbackFromFunction(callback))
+                .withCallback(_callbackFromConsumer(callback))
                 .proceed();
     }
 
@@ -125,7 +125,7 @@ public class DataAccessClient implements IDataAccessClient {
 
         new Retrier<List<NodeController>>()
                 .withCall(_clientService.getControllers(_headersFromTokens(tokens)))
-                .withCallback(_callbackFromFunction(callback))
+                .withCallback(_callbackFromConsumer(callback))
                 .proceed();
     }
 
@@ -135,7 +135,17 @@ public class DataAccessClient implements IDataAccessClient {
 
         new Retrier<Environment>()
                 .withCall(_clientService.getEnvironmentInfo(_headersFromTokens(tokens), id))
-                .withCallback(_callbackFromFunction(callback))
+                .withCallback(_callbackFromConsumer(callback))
+                .proceed();
+    }
+
+    @Override
+    public void getEnvironmentList(Consumer<List<Environment>> callback) {
+        TokenSet tokens = LoginRepository.getInstance().getTokens();
+
+        new Retrier<List<Environment>>()
+                .withCall(_clientService.getAllEnvironments(_headersFromTokens(tokens)))
+                .withCallback(_callbackFromConsumer(callback))
                 .proceed();
     }
 
@@ -148,7 +158,7 @@ public class DataAccessClient implements IDataAccessClient {
     /**
      * Converts a java.util.Function into a retrofit Callback.
      */
-    private <TInput> Callback<TInput> _callbackFromFunction(Consumer<TInput> f) {
+    private <TInput> Callback<TInput> _callbackFromConsumer(Consumer<TInput> f) {
         return new Callback<TInput>() {
             @Override
             public void onResponse(Call<TInput> call, Response<TInput> response) {

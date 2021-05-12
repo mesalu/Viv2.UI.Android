@@ -32,11 +32,11 @@
             app:barrierDirection="bottom"
             app:constraint_referenced_ids="name_label" />
 
-        <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/card_menu_button"
+        <ImageButton
+            android:id="@+id/card_main_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:background="@drawable/ic_baseline_menu_24"
+            android:background="@drawable/ic_baseline_archive_24"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -48,7 +48,7 @@
             android:textSize="@dimen/main_card_title_font_size"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/card_menu_button"
+            app:layout_constraintEnd_toStartOf="@id/card_main_button"
             tools:text="00000000-0000-0000-0000-000000000000" />
 
         <TextView
@@ -73,7 +73,7 @@
             android:layout_height="wrap_content"
             app:layout_constraintTop_toBottomOf="@id/r2_barrier"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/card_menu_button"
+            app:layout_constraintEnd_toStartOf="@id/card_main_button"
             tools:text="@string/lorem_ipsum_2sentences"/>
 
         <TextView
@@ -82,7 +82,7 @@
             android:layout_height="wrap_content"
             android:textAlignment="center"
             app:layout_constraintStart_toEndOf="@id/col_barrier"
-            app:layout_constraintEnd_toStartOf="@id/card_menu_button"
+            app:layout_constraintEnd_toStartOf="@id/card_main_button"
             app:layout_constraintTop_toBottomOf="@id/guid"
             tools:text="Programmatically filled" />
 
@@ -93,7 +93,7 @@
             android:textAlignment="center"
             app:layout_constraintTop_toBottomOf="@id/r1_barrier"
             app:layout_constraintStart_toEndOf="@id/col_barrier"
-            app:layout_constraintEnd_toStartOf="@id/card_menu_button"
+            app:layout_constraintEnd_toStartOf="@id/card_main_button"
             tools:text="Programmatically filled" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

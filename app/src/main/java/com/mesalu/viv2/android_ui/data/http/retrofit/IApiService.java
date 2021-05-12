@@ -52,4 +52,7 @@ public interface IApiService {
 
     @GET("environment/{id}")
     Call<Environment> getEnvironmentInfo(@HeaderMap Map<String, String> headers, @Path("id") String id);
+
+    @GET("environment")
+    Call<List<Environment>> getAllEnvironments(@HeaderMap Map<String, String> headers);
 }

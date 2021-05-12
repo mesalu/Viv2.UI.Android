@@ -20,6 +20,8 @@ import com.mesalu.viv2.android_ui.R;
 import com.mesalu.viv2.android_ui.data.model.Environment;
 import com.mesalu.viv2.android_ui.data.model.NodeController;
 import com.mesalu.viv2.android_ui.data.model.Pet;
+import com.mesalu.viv2.android_ui.ui.overview.data_entry.PetEntryDialogFragment;
+import com.mesalu.viv2.android_ui.ui.overview.data_entry.PetMigrationDialogFragment;
 import com.mesalu.viv2.android_ui.ui.widgets.ControllerCard;
 
 import java.util.ArrayList;
@@ -107,6 +109,13 @@ public class EnvironmentReviewFragment extends Fragment {
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             ControllerCard card = new ControllerCard(parent.getContext());
+
+            card.setListener(((controller, environment) -> {
+                // Eventually I want to swap this to a context action menu
+                // but for now, just popping up (yet another) dialog should be fine.
+                PetMigrationDialogFragment.create(controller, environment)
+                        .show(getChildFragmentManager(), PetMigrationDialogFragment.TAG);
+            }));
 
             card.setLayoutParams(new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,

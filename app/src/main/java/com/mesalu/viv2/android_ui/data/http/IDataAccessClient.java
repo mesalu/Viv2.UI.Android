@@ -25,4 +25,5 @@ public interface IDataAccessClient {
     void addPet(Pet pet, Consumer<Pet> callback);
     void getControllerList(Consumer<List<NodeController>> callback);
     void getEnvironment(String envId, Consumer<Environment> callback);
+    void getEnvironmentList(Consumer<List<Environment>> callback);
 }

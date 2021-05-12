@@ -34,10 +34,14 @@
     <string name="controller_version_label">Version</string>
     <string name="system_type_label">System</string>
     <string name="na_entry">N/a</string>
+    <string name="pet_label">Pet</string>
+    <string name="env_label_short">Env</string>
     <string name="species_entry_label">Species</string>
     <string name="name_entry_hint">Name</string>
     <string name="morph_entry_hint">Morph</string>
     <string name="dialog_title_pet_entry">Create New Pet</string>
+    <string name="dialog_migrate_pet_title">Migrate</string>
+    <string name="dialog_migrate_pet_message">Assign a pet to an environment</string>
 
     <!-- generic button labels. -->
     <string name="ok">OK</string>
