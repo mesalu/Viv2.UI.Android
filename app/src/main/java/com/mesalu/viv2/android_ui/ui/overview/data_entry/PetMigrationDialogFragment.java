@@ -13,13 +13,18 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.mesalu.viv2.android_ui.R;
+import com.mesalu.viv2.android_ui.data.PetInfoRepository;
+import com.mesalu.viv2.android_ui.data.Result;
 import com.mesalu.viv2.android_ui.data.model.Environment;
 import com.mesalu.viv2.android_ui.data.model.NodeController;
+import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.ui.overview.EnvironmentInfoViewModel;
 import com.mesalu.viv2.android_ui.ui.overview.PetInfoViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Used to specify a 'pet migration' - assigning a pet to an environment.
@@ -59,12 +64,36 @@ public class PetMigrationDialogFragment extends LifeCycleCognizantDialogFragment
                     // build an adapter from the list `data` & assign it to v
                     Spinner spinner = (Spinner) v;
 
-                    List<EnvSpinnerItem> items = new ArrayList<>(data.size());
-                    data.forEach(env -> items.add(new EnvSpinnerItem(env)));
+                    ArrayAdapter<SpinnerItem<Environment>> adapter = new ArrayAdapter<>(
+                            getContext(),
+                            android.R.layout.simple_spinner_item,
+                            data.stream().map(environment -> new SpinnerItem<>(environment, Environment::getId))
+                                    .collect(Collectors.toList()));
 
-                    ArrayAdapter<EnvSpinnerItem> adapter = new ArrayAdapter<>(getContext(),
-                            android.R.layout.simple_spinner_item, items);
                     adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+                    // TODO: set default selected value to entry matching ARG_ENV_ID
+
+                    spinner.setAdapter(adapter);
+                }));
+
+        petViewModel.getPetListObservable().observe(
+                this,
+                cognizantObserver(R.id.pet_spinner, (data, v) -> {
+                    // same drill, compose an adapter & assign to the spinner
+                    // DRY principle be like :(
+                    Spinner spinner = (Spinner) v;
+
+                    ArrayAdapter<SpinnerItem<Pet>> adapter = new ArrayAdapter<>(
+                            getContext(),
+                            android.R.layout.simple_spinner_item,
+                            data.stream().map(pet -> new SpinnerItem<>(pet, Pet::getName))
+                                    .collect(Collectors.toList()));
+
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+                    // TODO: set default pet entry to the pet already contained by env specified by
+                    //       ARG_ENV_ID, if any.
 
                     spinner.setAdapter(adapter);
                 }));
@@ -75,23 +104,55 @@ public class PetMigrationDialogFragment extends LifeCycleCognizantDialogFragment
                 .setMessage(R.string.dialog_migrate_pet_message)
                 .setView(view)
                 .setPositiveButton(R.string.ok, (dialog, which) -> {
-                    Log.d("PMDF", "Controller: " + getArguments().getString(ARG_CONTROLLER_ID));
-                    Log.d("PMDF", "Env: " + getArguments().getString(ARG_ENV_ID));
+                    // extract selected pet & env:
+                    Pet pet;
+                    Environment env;
+
+                    Spinner spinner = view.findViewById(R.id.pet_spinner);
+                    pet = ((SpinnerItem<Pet>) spinner.getSelectedItem()).itemInstance;
+
+                    spinner = view.findViewById(R.id.env_spinner);
+                    env = ((SpinnerItem<Environment>) spinner.getSelectedItem()).itemInstance;
+
+
+                    // Currently the ViewModels don't really support getting data updates unless
+                    // they themselves instigate the update. As such, getting both models to be
+                    // aware of the migration will be a jank-fest, so until a better flow is in
+                    // position there - we'll bypass the view models and request updates from
+                    // the view models on the call back. This will be less expensive when the
+                    // repositories support caching.
+                    PetInfoRepository.getInstance().migratePetToEnv(pet, env,
+                            result -> {
+                                if (result instanceof Result.Success) {
+                                    Log.d("PFDM", "Migrated pet: " + pet.getName() + "!");
+                                    envViewModel.updateEnvironment(env.getId());
+                                    petViewModel.updatePetById(pet.getId());
+                                }
+                                else {
+                                    // handle error (notify user, dismiss dialog if we manage
+                                    // to keep it around, etc.)
+                                    Log.e("PFDM", "Call failed.");
+                                }
+                            });
+
+                    // TODO: delay closing of dialog for pass/fail?
                 })
                 .setNegativeButton(R.string.cancel, ((dialog, which) -> {}))
                 .create();
     }
 
-    private static class EnvSpinnerItem {
-        Environment env;
+    private static class SpinnerItem<TModel> {
+        TModel itemInstance;
+        Function<TModel, String> converter;
 
-        EnvSpinnerItem(@NonNull Environment env) {
-            this.env = env;
+        SpinnerItem(@NonNull TModel item, @NonNull Function<TModel, String> converter) {
+            itemInstance = item;
+            this.converter = converter;
         }
 
         @Override
         public String toString() {
-            return env.getId();
+            return converter.apply(itemInstance);
         }
     }
 }

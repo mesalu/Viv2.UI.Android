@@ -1,7 +1,10 @@
 package com.mesalu.viv2.android_ui.data;
 
+import androidx.annotation.NonNull;
+
 import com.mesalu.viv2.android_ui.data.http.ClientFactory;
 import com.mesalu.viv2.android_ui.data.http.IDataAccessClient;
+import com.mesalu.viv2.android_ui.data.model.Environment;
 import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
 import com.mesalu.viv2.android_ui.data.model.Species;
@@ -31,7 +34,7 @@ public class PetInfoRepository {
      *
      * @param callback
      */
-    public void getPetIdList(Consumer<List<Integer>> callback) {
+    public void getPetIdList(@NonNull Consumer<List<Integer>> callback) {
         accessClient.getPetIdList(callback);
     }
 
@@ -46,11 +49,11 @@ public class PetInfoRepository {
      * @param petId the id of the pet to get info for.
      * @param callback a consumer to utilize when data is available.
      */
-    public void getPreliminaryPetInfo(int petId, Consumer<PreliminaryPetInfo> callback) {
+    public void getPreliminaryPetInfo(int petId, @NonNull Consumer<PreliminaryPetInfo> callback) {
         accessClient.getPreliminaryPetInfo(petId, callback);
     }
 
-    public void getPetInfo(int petId, Consumer<Pet> callback) {
+    public void getPetInfo(int petId, @NonNull Consumer<Pet> callback) {
         // TODO: check if we've made a recent request for preliminary pet info on the same
         //       ID (which should be likely) - if so, just extract the pet member from that.
         accessClient.getPet(petId, callback);
@@ -67,7 +70,7 @@ public class PetInfoRepository {
      * @param pet
      * @param callback
      */
-    public void addPetAndUpdateAll(Pet pet, Consumer<List<Integer>> callback) {
+    public void addPetAndUpdateAll(Pet pet, @NonNull Consumer<List<Integer>> callback) {
         // add via access client
         accessClient.addPet(pet, unused -> getPetIdList(callback));
     }
@@ -79,8 +82,15 @@ public class PetInfoRepository {
      * @param pet
      * @param callback
      */
-    public void addPet(Pet pet, Consumer<Pet> callback) {
+    public void addPet(Pet pet, @NonNull Consumer<Pet> callback) {
         accessClient.addPet(pet, callback);
+    }
 
+    /**
+     * Asynchronously requests a pet migration, upon successful completion, a callback to
+     * the given consumers is made.
+     */
+    public void migratePetToEnv(Pet pet, Environment environment, Consumer<Result> callback) {
+        accessClient.applyPetMigration(pet.getId(), environment.getId(), callback);
     }
 }

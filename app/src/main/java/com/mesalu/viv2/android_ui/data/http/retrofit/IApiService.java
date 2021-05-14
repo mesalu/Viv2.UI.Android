@@ -17,6 +17,7 @@ import retrofit2.http.GET;
 import retrofit2.http.HeaderMap;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 /**
  * Represents a Retrofit-compatible service that our retrofit-using dao can utilize.
@@ -46,6 +47,10 @@ public interface IApiService {
 
     @POST("pet/add")
     Call<Integer> addPet(@HeaderMap Map<String, String> headers, @Body NewPetForm form);
+
+    @POST("pet/{id}/migrate")
+    Call<Void> migratePet(@HeaderMap Map<String, String> headers, @Path("id") int id,
+                          @Query("toEnv") String environmentId);
 
     @GET("node/mine")
     Call<List<NodeController>> getControllers(@HeaderMap Map<String, String> headers);

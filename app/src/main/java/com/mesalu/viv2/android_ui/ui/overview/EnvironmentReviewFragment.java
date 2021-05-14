@@ -135,7 +135,7 @@ public class EnvironmentReviewFragment extends Fragment {
                 final String envId = controller.getEnvironmentIds().get(i);
 
                 int finalI = i;
-                envInfoViewModel.observeEnvironmentOnce(envId,
+                envInfoViewModel.getEnvironmentObservable(envId).observe(
                         EnvironmentReviewFragment.this.getViewLifecycleOwner(),
                         environment -> {
                             holder.onEnvironmentLoaded(controller.getId(), finalI, environment);

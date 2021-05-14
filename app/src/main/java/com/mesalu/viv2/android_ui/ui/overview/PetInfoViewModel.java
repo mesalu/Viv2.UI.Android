@@ -7,39 +7,43 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
 import com.mesalu.viv2.android_ui.data.PetInfoRepository;
+import com.mesalu.viv2.android_ui.data.Result;
 import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
+import com.mesalu.viv2.android_ui.data.model.Environment;
 import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
 import com.mesalu.viv2.android_ui.data.model.Species;
 import com.mesalu.viv2.android_ui.ui.events.ConsumableEvent;
 import com.mesalu.viv2.android_ui.ui.events.SimpleEvent;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class PetInfoViewModel extends FabAwareViewModel {
     // all Ids of pets associated to the user
-    private MutableLiveData<List<Integer>> petIds;
+    private final MutableLiveData<List<Integer>> petIds;
 
     // instances of Pet for each pet associated to user
-    private Map<Integer, MutableLiveData<Pet>> pets;
+    private final HybridCollectionLiveData<Integer, Pet> pets;
 
-    private MutableLiveData<List<Species>> species;
-
-    // contains all samples from the past week
-    private MutableLiveData<List<EnvDataSample>> thisWeeksSamples;
+    private final MutableLiveData<List<Species>> species;
 
     // contains "preliminary info" objects of tracked pets.
-    private Map<Integer, MutableLiveData<PreliminaryPetInfo>> preliminaryInfo;
+    private final Map<Integer, MutableLiveData<PreliminaryPetInfo>> preliminaryInfo;
 
-    private PetInfoRepository repository;
+    private final PetInfoRepository repository;
 
     public PetInfoViewModel() {
         super();
 
         repository = PetInfoRepository.getInstance();
-        pets = new HashMap<>();
+        pets = new HybridCollectionLiveData<>(Pet::getId);
         species = new MutableLiveData<>();
         petIds = new MutableLiveData<>();
         preliminaryInfo = new HashMap<>();
@@ -95,6 +99,7 @@ public class PetInfoViewModel extends FabAwareViewModel {
             // immediately invokes the required callback.
             preliminaryInfo.get(id).observe(owner, observer);
         }
+
         else {
             final MutableLiveData<PreliminaryPetInfo> pendingData = new MutableLiveData<>();
             preliminaryInfo.put(id, pendingData);
@@ -104,18 +109,48 @@ public class PetInfoViewModel extends FabAwareViewModel {
 
             // kick off a request to fill that data item.
             repository.getPreliminaryPetInfo(id,
-                    pendingData::setValue);
+                    this::extractAndUpdatePreliminaryPet);
         }
     }
 
+    /**
+     * Gets a LiveData instance that will receive updates for a pet with matching ID.
+     * @param id the id of the pet-of-interest.
+     * @param requestUpdate calls updatePetById(id) if true.
+     * @return
+     */
+    public LiveData<Pet> getPetObservable(int id, boolean requestUpdate) {
+        if (requestUpdate) updatePetById(id);
+        return pets.getObservableForId(id);
+    }
+
+    /**
+     * As getPetObservable(int, bool), but sets requestUpdate to true by default.
+     * @param id id of Pet to get an observable for.
+     * @return a LiveData instance suitable for getting updates on the specific pet.
+     */
     public LiveData<Pet> getPetObservable(int id) {
-        if (!pets.containsKey(id)) {
-            final MutableLiveData<Pet> petObservable = new MutableLiveData<>();
-            pets.put(id, petObservable);
-            // request data load (Depend on repo for being aware enough to merge prelim & pet)
-            repository.getPetInfo(id, petObservable::setValue);
-        }
-        return pets.get(id);
+        return getPetObservable(id, true);
+    }
+
+    /**
+     * Requests underlying layers to fetch updated information on the specified pet ID.
+     * Fulfillment and timing of fulfillment are dependent on those underlying layers.
+     */
+    public void updatePetById(int id) {
+        repository.getPetInfo(id, pets::update);
+    }
+
+    /**
+     * Returns an observable that receives a list of populated pet objects as they're
+     * acquired. This is different from petIds as petIds is ensured to have an id per-pet
+     * that the active user may be interested in, whereas this list only contains pets that
+     * have been loaded.
+     * Note that the lists posted to this live data are unmodifiable.
+     * @return live data suitable for observing list-of-pets updates
+     */
+    public LiveData<List<Pet>> getPetListObservable() {
+        return pets.getListObservable();
     }
 
     public void submitNewPet(Pet pet) {
@@ -125,5 +160,17 @@ public class PetInfoViewModel extends FabAwareViewModel {
 
     private void fetchSpeciesList() {
         PetInfoRepository.getInstance().getSpeciesInfo(s -> species.setValue(s));
+    }
+
+    private void extractAndUpdatePreliminaryPet(PreliminaryPetInfo preliminaryPetInfo) {
+        // preliminaryPetInfo.getPet() will contain the same info as would
+        // land in the pet list anyways, so we'll treat it the same.
+        pets.update(preliminaryPetInfo.getPet());
+
+        int id = preliminaryPetInfo.getPet().getId();
+        if (!preliminaryInfo.containsKey(id))
+            preliminaryInfo.put(id, new MutableLiveData<>());
+
+        preliminaryInfo.get(id).setValue(preliminaryPetInfo);
     }
 }

@@ -21,18 +21,13 @@ import java.util.Set;
 public class EnvironmentInfoViewModel extends FabAwareViewModel {
     private final EnvInfoRepository envInfoRepository;
     private final MutableLiveData<List<NodeController>> controllers;
-
-    // The different ways in which Environment data will be loaded, care will need to be taken
-    // to ensure that their state's remain synchronized.
-    private final Map<String, MutableLiveData<Environment>> environmentsMap;
-    private final MutableLiveData<List<Environment>> envListLiveData;
+    private final HybridCollectionLiveData<String, Environment> environmentLiveData;
 
     public EnvironmentInfoViewModel() {
         super();
         envInfoRepository = EnvInfoRepository.getInstance();
+        environmentLiveData = new HybridCollectionLiveData<>(Environment::getId);
         controllers = new MutableLiveData<>();
-        environmentsMap = new HashMap<>();
-        envListLiveData = new MutableLiveData<>();
     }
 
     public LiveData<List<NodeController>> getControllersObservable() {
@@ -41,16 +36,38 @@ public class EnvironmentInfoViewModel extends FabAwareViewModel {
     }
 
     public void updateControllers() {
-        envInfoRepository.getControllerList(l -> controllers.setValue(l));
+        envInfoRepository.getControllerList(controllers::setValue);
     }
 
+    /**
+     * Gets an observable that will receive updates for environments of the matching ID
+     * as they arrive. Automatically requests an update.
+     * @param id
+     * @return
+     */
     public LiveData<Environment> getEnvironmentObservable(String id) {
-        if (!environmentsMap.containsKey(id)) {
-            MutableLiveData<Environment> env = new MutableLiveData<>();
-            environmentsMap.put(id, env);
-            envInfoRepository.getEnvironment(id, this::lockstepEnvUpdate);
-        }
-        return environmentsMap.get(id);
+        return getEnvironmentObservable(id, true);
+    }
+
+    /**
+     * Gets an observable that will receive updates for environments of the matching ID
+     * as they arrive.
+     * @param id
+     * @param requestUpdate calls updateEnvironment(id) if true.
+     * @return
+     */
+    public LiveData<Environment> getEnvironmentObservable(String id, boolean requestUpdate) {
+        if (requestUpdate) updateEnvironment(id);
+        return environmentLiveData.getObservableForId(id);
+    }
+
+    /**
+     * Requests an update for the specified Environment.
+     * Whether or not this update is fulfilled is dependent on the Env. repository.
+     * @param id
+     */
+    public void updateEnvironment(String id) {
+        envInfoRepository.getEnvironment(id, environmentLiveData::update);
     }
 
     /**
@@ -64,29 +81,30 @@ public class EnvironmentInfoViewModel extends FabAwareViewModel {
 
     /**
      * Gets an observable that receives batch updates of all environments.
-     * Note: the list given to observers is unmodifiable.
+     * Note: the list given to observers is unmodifiable
+     *
+     * @param requestUpdate if true, calls requestBatchEnvUpdate
      */
-    public LiveData<List<Environment>> getEnvListObservable() {
+    public LiveData<List<Environment>> getEnvListObservable(boolean requestUpdate) {
         // kick off a refresh, just in case.
-        envInfoRepository.getEnvironmentList(l -> l.forEach(this::lockstepEnvUpdate));
-
-        return envListLiveData;
+        if (requestUpdate) requestBatchEnvUpdate();
+        return environmentLiveData.getListObservable();
     }
 
-    private void lockstepEnvUpdate(Environment environment) {
-        if (!environmentsMap.containsKey(environment.getId()))
-            environmentsMap.put(environment.getId(), new MutableLiveData<>());
-        environmentsMap.get(environment.getId()).setValue(environment);
+    /**
+     * As getEnvListObservable(boolean), but defaults `requestUpdate` to true.
+     * @return an observable live data that receives an updated list of environments.
+     */
+    public LiveData<List<Environment>> getEnvListObservable() {
+        return getEnvListObservable(true);
+    }
 
-        // O(n) sweep of hash map values... unideal.
-        // compose a list of Environment values from those in the hash set.
-        ArrayList<Environment> intermediate = new ArrayList<>();
-        for (LiveData<Environment> ld : environmentsMap.values()) {
-            Environment e = ld.getValue();
-            if (ld.getValue() != null)
-                intermediate.add(e);
-        }
-
-        envListLiveData.setValue(Collections.unmodifiableList(intermediate));
+    /**
+     * Requests an update of all environments from the repository layer.
+     * The fullfillment of this request will be dependent on the repository layer, but if
+     * successful then all observers of any Environment related data should receive an update.
+     */
+    public void  requestBatchEnvUpdate() {
+        envInfoRepository.getEnvironmentList(environmentLiveData::batchUpdate);
     }
 }

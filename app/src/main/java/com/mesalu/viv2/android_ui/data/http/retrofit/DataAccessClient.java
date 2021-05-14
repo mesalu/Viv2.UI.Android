@@ -5,6 +5,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 
 import com.mesalu.viv2.android_ui.data.LoginRepository;
+import com.mesalu.viv2.android_ui.data.Result;
 import com.mesalu.viv2.android_ui.data.http.IDataAccessClient;
 import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
 import com.mesalu.viv2.android_ui.data.model.Environment;
@@ -146,6 +147,29 @@ public class DataAccessClient implements IDataAccessClient {
         new Retrier<List<Environment>>()
                 .withCall(_clientService.getAllEnvironments(_headersFromTokens(tokens)))
                 .withCallback(_callbackFromConsumer(callback))
+                .proceed();
+    }
+
+    @Override
+    public void applyPetMigration(int petId, String envId, Consumer<Result> callback) {
+        TokenSet tokens = LoginRepository.getInstance().getTokens();
+
+        new Retrier<Void>()
+                .withCall(_clientService.migratePet(_headersFromTokens(tokens), petId, envId))
+                .withCallback(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Call<Void> call, Response<Void> response) {
+                        if (response.code() != 200)
+                            callback.accept(new Result.Error(new Exception("API error")));
+                        else
+                            callback.accept(new Result.Success<Void>());
+                    }
+
+                    @Override
+                    public void onFailure(Call<Void> call, Throwable t) {
+                        callback.accept(new Result.Error(t));
+                    }
+                })
                 .proceed();
     }
 
