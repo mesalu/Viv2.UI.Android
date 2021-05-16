@@ -11,9 +11,14 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -28,14 +33,63 @@ import java.util.List;
 
 public class PetReviewFragment extends Fragment {
     private PetInfoViewModel viewModel;
+    private Adapter recyclerAdapter;
+    private ActionMode.Callback actionModeCallback;
+    private ActionMode activeActionMode;
 
     public static PetReviewFragment newInstance() {
         return new PetReviewFragment();
     }
 
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
+        // as good a time as any to instantiate actionModeCallback:
+        actionModeCallback = new ActionMode.Callback() {
+            @Override
+            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                MenuInflater inflater = mode.getMenuInflater();
+                inflater.inflate(R.menu.overview_contextual_actions, menu);
+                return true;
+            }
+
+            @Override
+            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                // not yet sure what we'll need to do here.
+                return false;
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                // handle items:
+                if (item.getItemId() == R.id.action_delete) {
+                    if (recyclerAdapter != null) {
+                        int petId = recyclerAdapter.getSelectedPetId();
+                        Log.d("PRF", "On delete for pet where id == " + petId);
+                        mode.finish();
+                    }
+                }
+                else if (item.getItemId() == R.id.action_chart) {
+                    // Launch a fragment to display history chart for selected pet.
+                }
+                else return false; // did not handle the item.
+
+                // we handled the item:
+                return true;
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode mode) {
+                activeActionMode = null;
+
+                // recycler is set in live data call back, need to confirm atomicity & which thread
+                // those callbacks execute on.
+                if (recyclerAdapter != null) recyclerAdapter.clearSelectedItem();
+            }
+        };
+
         return inflater.inflate(R.layout.fragment_pet_review, container, false);
     }
 
@@ -67,9 +121,9 @@ public class PetReviewFragment extends Fragment {
             for (Integer i : idList) Log.d("PRF", "Got id: " + i.toString());
 
             // attach an adapter to the recycler view.
-            Adapter adapter = new Adapter(idList);
+            recyclerAdapter = new Adapter(idList);
             RecyclerView recycler = getView().findViewById(R.id.recycler_view);
-            recycler.setAdapter(adapter);
+            recycler.setAdapter(recyclerAdapter);
 
             // hide the loading bar
             progressBar.setVisibility(View.GONE);
@@ -99,11 +153,26 @@ public class PetReviewFragment extends Fragment {
     }
 
     private static class ViewHolder extends RecyclerView.ViewHolder {
-        private int petId;
+        interface ViewActionListener {
+            boolean onLongClick(View itemView, int position);
+            void onClick(View itemView, int position);
+        }
 
-        public ViewHolder(@NonNull View itemView) {
+        private int petId;
+        private ViewActionListener actionListener;
+
+        public ViewHolder(@NonNull View itemView, @NonNull ViewActionListener listener) {
             super(itemView);
             petId = -1;
+            actionListener = listener;
+
+            itemView.setOnLongClickListener(v -> {
+                // TODO: getAdapterPosition is deprecated according to current docs,
+                //      will need to swap to getAbsoluteAdapterPosition
+                return actionListener.onLongClick(v, getAdapterPosition());
+            });
+
+            itemView.setOnClickListener(v -> actionListener.onClick(v, getAdapterPosition()));
         }
 
         public synchronized void setPendingUpdate(int id) {
@@ -184,9 +253,11 @@ public class PetReviewFragment extends Fragment {
 
     private class Adapter extends RecyclerView.Adapter<ViewHolder> {
         List<Integer> petIds;
+        int selectedItemPosition;
 
         public Adapter(List<Integer> ids) {
             petIds = ids;
+            selectedItemPosition = RecyclerView.NO_POSITION;
         }
 
         @NonNull
@@ -196,7 +267,38 @@ public class PetReviewFragment extends Fragment {
             View view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.card_pet_overview, parent, false);
 
-            return new ViewHolder(view);
+            return new ViewHolder(view, new ViewHolder.ViewActionListener() {
+                @Override
+                public boolean onLongClick(View itemView, int position) {
+                    // if not in action mode, start it
+                    if (activeActionMode != null) return false;
+
+                    // start action mode & select the item view.
+                    activeActionMode = requireActivity().startActionMode(actionModeCallback);
+
+                    // select the card, clear the old selection first if applicable
+                    int oldSelection = selectedItemPosition;
+                    selectedItemPosition = position;
+
+                    if (oldSelection != RecyclerView.NO_POSITION)
+                        notifyItemChanged(oldSelection);
+
+                    itemView.setSelected(true);
+                    notifyItemChanged(selectedItemPosition);
+
+                    return true;
+                }
+
+                @Override
+                public void onClick(View itemView, int position) {
+                    if (activeActionMode == null) return; // not in action mode, nothing to do.
+
+                    int oldPosition = selectedItemPosition;
+                    selectedItemPosition = position;
+                    notifyItemChanged(oldPosition);
+                    notifyItemChanged(selectedItemPosition);
+                }
+            });
         }
 
         @Override
@@ -210,6 +312,7 @@ public class PetReviewFragment extends Fragment {
 
             // set up the view holder to expect the incoming change:
             holder.setPendingUpdate(id);
+            holder.itemView.setSelected(position == selectedItemPosition);
 
             // TODO: remove old observer associated to this view holder.
             viewModel.getPreliminaryInfoObservable(petIds.get(position), true)
@@ -223,6 +326,22 @@ public class PetReviewFragment extends Fragment {
         @Override
         public int getItemCount() {
             return petIds.size();
+        }
+
+        /**
+         * returns the ID of the pet corresponding to the selected item - if any.
+         * If no view is selected then -1 is returned.
+         * @return Id of the pet selected by the user.
+         */
+        public int getSelectedPetId() {
+            if (selectedItemPosition != RecyclerView.NO_POSITION)
+                return petIds.get(selectedItemPosition);
+            return -1;
+        }
+
+        public void clearSelectedItem() {
+            notifyItemChanged(selectedItemPosition);
+            selectedItemPosition = RecyclerView.NO_POSITION;
         }
     }
 }

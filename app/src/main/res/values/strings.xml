@@ -28,6 +28,8 @@
     <!-- Action labels -->
     <string name="action_refresh">Refresh</string>
     <string name="action_logout">Logout</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_chart">Show History</string>
 
     <!-- Misc labels/titles/etc. -->
     <string name="nyi_short">NYI</string>

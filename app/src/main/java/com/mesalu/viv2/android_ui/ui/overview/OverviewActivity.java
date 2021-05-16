@@ -99,8 +99,7 @@ public class OverviewActivity extends AppCompatActivity {
         // Setup the swipe-refresh callback:
         SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipe_refresh);
         swipeRefreshLayout.setOnRefreshListener(() -> {
-            CommonSignalAwareViewModel viewModel = getActiveFragmentViewModel();
-            if (viewModel != null) viewModel.signalRefresh();
+            dispatchRefresh();
 
             // TODO: need a callback for invoking setRefreshing at the best time.
             swipeRefreshLayout.setRefreshing(false);
@@ -121,9 +120,7 @@ public class OverviewActivity extends AppCompatActivity {
         }
 
         else if (id == R.id.action_refresh) {
-            // dispatch to active fragment through its view model.
-            CommonSignalAwareViewModel activeViewModel = getActiveFragmentViewModel();
-            if (activeViewModel != null) activeViewModel.signalRefresh();
+            dispatchRefresh();
         }
 
         else {
@@ -258,5 +255,10 @@ public class OverviewActivity extends AppCompatActivity {
             return provider.get(PetInfoViewModel.class);
 
         else return null;
+    }
+
+    private void dispatchRefresh() {
+        CommonSignalAwareViewModel viewModel = getActiveFragmentViewModel();
+        if (viewModel != null) viewModel.signalRefresh();
     }
 }
