@@ -9,6 +9,7 @@ import androidx.navigation.NavDestination;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -93,6 +94,16 @@ public class OverviewActivity extends AppCompatActivity {
                         .make(v, "Fab: Hello world", Snackbar.LENGTH_SHORT);
                 snackbar.show();
             }
+        });
+
+        // Setup the swipe-refresh callback:
+        SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipe_refresh);
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            CommonSignalAwareViewModel viewModel = getActiveFragmentViewModel();
+            if (viewModel != null) viewModel.signalRefresh();
+
+            // TODO: need a callback for invoking setRefreshing at the best time.
+            swipeRefreshLayout.setRefreshing(false);
         });
     }
 
