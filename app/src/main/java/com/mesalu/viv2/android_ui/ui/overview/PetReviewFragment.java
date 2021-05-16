@@ -84,6 +84,16 @@ public class PetReviewFragment extends Fragment {
             }
         });
 
+        viewModel.getRefreshSignal().observe(getViewLifecycleOwner(), event -> {
+            if (event.consume()) {
+                Log.d("PRF", "Refresh handler notified");
+
+                if (viewModel.petIdListLoaded()) {
+                    viewModel.refreshAllPreliminaryPetInfo();
+                }
+            }
+        });
+
         if (LoginRepository.getInstance().isLoggedIn())
             viewModel.fetchPetIdList();
     }
@@ -202,14 +212,12 @@ public class PetReviewFragment extends Fragment {
             holder.setPendingUpdate(id);
 
             // TODO: remove old observer associated to this view holder.
-
-            viewModel.getPreliminaryPetInfo(petIds.get(position),
-                    PetReviewFragment.this,
-                    preliminaryPetInfo -> {
-                        Log.d("PRFA", "observer's onChanged called");
-                        holder.update(id, preliminaryPetInfo);
-                    }
-            );
+            viewModel.getPreliminaryInfoObservable(petIds.get(position), true)
+                    .observe(PetReviewFragment.this.getViewLifecycleOwner(),
+                            preliminaryPetInfo -> {
+                                Log.d("PRFA", "observer's onChanged called");
+                                holder.update(id, preliminaryPetInfo);
+                            });
         }
 
         @Override

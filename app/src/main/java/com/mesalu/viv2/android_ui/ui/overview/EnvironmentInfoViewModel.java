@@ -9,16 +9,9 @@ import com.mesalu.viv2.android_ui.data.EnvInfoRepository;
 import com.mesalu.viv2.android_ui.data.model.Environment;
 import com.mesalu.viv2.android_ui.data.model.NodeController;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
-public class EnvironmentInfoViewModel extends FabAwareViewModel {
+public class EnvironmentInfoViewModel extends CommonSignalAwareViewModel {
     private final EnvInfoRepository envInfoRepository;
     private final MutableLiveData<List<NodeController>> controllers;
     private final HybridCollectionLiveData<String, Environment> environmentLiveData;

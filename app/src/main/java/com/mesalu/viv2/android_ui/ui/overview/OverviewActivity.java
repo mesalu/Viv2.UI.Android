@@ -1,9 +1,11 @@
 package com.mesalu.viv2.android_ui.ui.overview;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
+import androidx.navigation.NavDestination;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
@@ -11,6 +13,8 @@ import androidx.navigation.ui.NavigationUI;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -82,23 +86,40 @@ public class OverviewActivity extends AppCompatActivity {
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(v -> {
-            if (navController.getCurrentDestination() == null) return;
-
-            int id = navController.getCurrentDestination().getId();
-            if (id == R.id.navigation_pet) {
-                Log.d("OA", "FAB pressed with pet fragment on");
-                new ViewModelProvider(this).get(PetInfoViewModel.class).signal();
-            }
-            else if (id == R.id.navigation_env) {
-                Log.d("OA", "FAB pressed with env fragment on");
-                new ViewModelProvider(this).get(EnvironmentInfoViewModel.class).signal();
-            }
+            CommonSignalAwareViewModel activeViewModel = getActiveFragmentViewModel();
+            if (activeViewModel != null) activeViewModel.signalFab();
             else {
                 Snackbar snackbar = Snackbar
                         .make(v, "Fab: Hello world", Snackbar.LENGTH_SHORT);
                 snackbar.show();
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.overview_actions_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_logout) {
+            // TODO, (dump tokens, drop user back on login activity).
+        }
+
+        else if (id == R.id.action_refresh) {
+            // dispatch to active fragment through its view model.
+            CommonSignalAwareViewModel activeViewModel = getActiveFragmentViewModel();
+            if (activeViewModel != null) activeViewModel.signalRefresh();
+        }
+
+        else {
+            return super.onOptionsItemSelected(item);
+        }
+
+        return true;
     }
 
     @Override
@@ -207,5 +228,24 @@ public class OverviewActivity extends AppCompatActivity {
             Log.e("OA", "Token refresh attempt failed! " + throwable.toString());
             scheduleRetryAttempt();
         });
+    }
+
+    @Nullable
+    private CommonSignalAwareViewModel getActiveFragmentViewModel() {
+        // get current navigation item id, use to determine which view model to return.
+        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+
+        // findNavController is marked nonnull, so we can assume we found it (or threw an exception?)
+        NavDestination currentDestination = navController.getCurrentDestination();
+        if (currentDestination == null) return null;
+
+        ViewModelProvider provider = new ViewModelProvider(this);
+        if (currentDestination.getId() == R.id.navigation_env)
+            return provider.get(EnvironmentInfoViewModel.class);
+
+        else if (currentDestination.getId() == R.id.navigation_pet)
+            return provider.get(PetInfoViewModel.class);
+
+        else return null;
     }
 }

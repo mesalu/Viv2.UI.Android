@@ -4,28 +4,17 @@ import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModel;
 
 import com.mesalu.viv2.android_ui.data.PetInfoRepository;
-import com.mesalu.viv2.android_ui.data.Result;
-import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
-import com.mesalu.viv2.android_ui.data.model.Environment;
 import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
 import com.mesalu.viv2.android_ui.data.model.Species;
-import com.mesalu.viv2.android_ui.ui.events.ConsumableEvent;
-import com.mesalu.viv2.android_ui.ui.events.SimpleEvent;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class PetInfoViewModel extends FabAwareViewModel {
+public class PetInfoViewModel extends CommonSignalAwareViewModel {
     // all Ids of pets associated to the user
     private final MutableLiveData<List<Integer>> petIds;
 
@@ -80,37 +69,53 @@ public class PetInfoViewModel extends FabAwareViewModel {
     }
 
     /**
-     * Gets the preliminary info for the specified pet. If not available a request is dispatched
-     * to get the info before invoking the observer's callback. In either case the callback
-     * is invoked on the calling thread.
+     * Gets an observable live data instance that will receive updates for pets of matching id
+     * setting `refresh` will request the data access layer refresh the data. The access layer
+     * may or may not then request fresh information from the backend API.
      *
-     * If an error occurs - such as login state being invalid, or the specified pet not existing -
-     * then the callback is never invoked.
-     *
-     * @param id The ID of the pet to get info for.
-     * @param owner Lifecycle owner of the observer.
-     * @param observer Callback for when data is ready
+     * @param id pet id.
+     * @param refresh should new data be requested?
+     * @return a LiveData instance that will receive updates for the requested pet.
      */
-    public void getPreliminaryPetInfo(int id,
-                                      LifecycleOwner owner, Observer<PreliminaryPetInfo> observer) {
-
-        if (preliminaryInfo.containsKey(id)) {
-            // can just attach directly. My understanding is that this
-            // immediately invokes the required callback.
-            preliminaryInfo.get(id).observe(owner, observer);
+    public LiveData<PreliminaryPetInfo> getPreliminaryInfoObservable(int id, boolean refresh) {
+        if (!preliminaryInfo.containsKey(id)) {
+            preliminaryInfo.put(id, new MutableLiveData<>());
         }
 
-        else {
-            final MutableLiveData<PreliminaryPetInfo> pendingData = new MutableLiveData<>();
-            preliminaryInfo.put(id, pendingData);
+        MutableLiveData<PreliminaryPetInfo> observable = preliminaryInfo.get(id);
+        if (refresh)
+            repository.getPreliminaryPetInfo(id, this::extractAndUpdatePreliminaryPet);
 
-            // register the observer:
-            pendingData.observe(owner, observer);
+        return observable;
+    }
 
-            // kick off a request to fill that data item.
-            repository.getPreliminaryPetInfo(id,
-                    this::extractAndUpdatePreliminaryPet);
-        }
+    /**
+     * As getPreliminaryInfoObservable(id, false)
+     */
+    public LiveData<PreliminaryPetInfo> getPreliminaryInfoObservable(int id) {
+        return getPreliminaryInfoObservable(id, false);
+    }
+
+    /**
+     * Requests that the underlying data access layer refresh the PreliminaryPetInfo field
+     * for the specified pet id.
+     * @param petId
+     */
+    public void refreshPreliminaryInfoFor(int petId) {
+        repository.getPreliminaryPetInfo(petId, this::extractAndUpdatePreliminaryPet);
+    }
+
+    /**
+     * Ensures the pet id list is up to date and then requests a preliminary pet info update
+     * for each id within.
+     */
+    public void refreshAllPreliminaryPetInfo() {
+        repository.getPetIdList(l -> {
+            petIds.setValue(l);
+            for (int petId : l) {
+                refreshPreliminaryInfoFor(petId);
+            }
+        });
     }
 
     /**

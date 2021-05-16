@@ -25,6 +25,9 @@
     <string name="chart_therm_cold_glass_label">Cold-side Glass</string>
     <string name="chart_therm_cold_mat_label">Cold-side Glass</string>
 
+    <!-- Action labels -->
+    <string name="action_refresh">Refresh</string>
+    <string name="action_logout">Logout</string>
 
     <!-- Misc labels/titles/etc. -->
     <string name="nyi_short">NYI</string>
