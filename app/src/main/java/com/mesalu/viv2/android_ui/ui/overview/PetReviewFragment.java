@@ -255,6 +255,9 @@ public class PetReviewFragment extends Fragment {
                 ledView.setLedLevel(LedValueView.LedLevel.WARN);
             }
 
+            // Clear latest sample time, so that the ui update event
+            // doesn't repopulate the field.
+            lastSampleTime = null;
             TextView tv = itemView.findViewById(R.id.sample_age_view);
             tv.setText("");
         }
