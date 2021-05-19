@@ -10,6 +10,7 @@ import com.google.gson.GsonBuilder;
 import com.mesalu.viv2.android_ui.Application;
 import com.mesalu.viv2.android_ui.BuildConfig;
 import com.mesalu.viv2.android_ui.R;
+import com.mesalu.viv2.android_ui.data.Serialization;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,9 +51,7 @@ class HttpClientFactory {
     }
 
     public Retrofit composeClient() {
-        Gson gson = new GsonBuilder()
-                //.setLenient() // in case we need it.
-                .create();
+        Gson gson = Serialization.getGson();
 
         String url = (BuildConfig.DEBUG) ? "https://192.168.0.10:5001/api/" : "https://viv2api.azurewebsites.net/api/";
         //String url = "https://viv2api.azurewebsites.net/api/";

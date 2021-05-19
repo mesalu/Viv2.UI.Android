@@ -1,8 +1,11 @@
 package com.mesalu.viv2.android_ui.ui.overview;
 
+import androidx.annotation.StringRes;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -26,9 +29,17 @@ import com.mesalu.viv2.android_ui.R;
 import com.mesalu.viv2.android_ui.data.LoginRepository;
 import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
 import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
+import com.mesalu.viv2.android_ui.ui.events.SimpleEvent;
 import com.mesalu.viv2.android_ui.ui.overview.data_entry.PetEntryDialogFragment;
 import com.mesalu.viv2.android_ui.ui.widgets.LedValueView;
 
+import java.time.Duration;
+import java.time.OffsetDateTime;
+import java.time.Period;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.temporal.TemporalUnit;
 import java.util.List;
 
 public class PetReviewFragment extends Fragment {
@@ -158,8 +169,13 @@ public class PetReviewFragment extends Fragment {
             void onClick(View itemView, int position);
         }
 
-        private int petId;
-        private ViewActionListener actionListener;
+        int petId;
+        ViewActionListener actionListener;
+
+        Observer<SimpleEvent> uiUpdateObserver;
+        Observer<PreliminaryPetInfo> petInfoObserver;
+
+        ZonedDateTime lastSampleTime;
 
         public ViewHolder(@NonNull View itemView, @NonNull ViewActionListener listener) {
             super(itemView);
@@ -175,7 +191,8 @@ public class PetReviewFragment extends Fragment {
             itemView.setOnClickListener(v -> actionListener.onClick(v, getAdapterPosition()));
         }
 
-        public synchronized void setPendingUpdate(int id) {
+        public synchronized void setPendingUpdate(int id, Observer<PreliminaryPetInfo> petInfoObserver) {
+            this.petInfoObserver = petInfoObserver;
             petId = id;
         }
 
@@ -197,6 +214,8 @@ public class PetReviewFragment extends Fragment {
         }
 
         protected void fillSample(EnvDataSample sample) {
+            lastSampleTime = sample.getCaptureTime();
+
             // TODO: eventually temp-windows will be bundled in with
             //      pet info, use that for setting Led tone.
 
@@ -224,6 +243,8 @@ public class PetReviewFragment extends Fragment {
             val = centigradeToFahrenheit(sample.getColdMat());
             setLed(ledView, 78f, 82f, (float) val);
             ledView.setText(val);
+
+            updateTimeStamp();
         }
 
         protected void fillNullSample() {
@@ -233,6 +254,9 @@ public class PetReviewFragment extends Fragment {
                 ledView.setText(R.string.na_entry);
                 ledView.setLedLevel(LedValueView.LedLevel.WARN);
             }
+
+            TextView tv = itemView.findViewById(R.id.sample_age_view);
+            tv.setText("");
         }
 
         private static float centigradeToFahrenheit(double centigrade) {
@@ -248,6 +272,74 @@ public class PetReviewFragment extends Fragment {
                 view.setLedLevel(LedValueView.LedLevel.GOOD);
             else
                 view.setLedLevel(LedValueView.LedLevel.BAD);
+        }
+
+        private String makeAgeStringLabel(Context context, Period major, Duration minor) {
+            // Scan from largest units to smallest for the first non-0 value.
+            @StringRes int unitStringRes;
+            long value;
+
+            if (!major.isZero()) {
+                if (major.getYears() > 0) {
+                    value = major.getYears();
+                    unitStringRes = R.string.time_unit_year;
+                }
+                else if (major.getMonths() > 0) {
+                    value = major.getMonths();
+                    unitStringRes = R.string.time_unit_month;
+                }
+                else { // days must have value
+                    value = major.getDays();
+                    // check if we should up to weeks.
+                    long weeks = value / 7;
+                    if (weeks > 0) {
+                        value = weeks;
+                        unitStringRes = R.string.time_unit_week;
+                    }
+                    else unitStringRes = R.string.time_unit_day;
+                }
+            }
+            else {
+                // the major time span was empty:
+                value = minor.getSeconds();
+                unitStringRes = R.string.time_lt_minute;
+
+                long minutes = value / 60;
+                long hours = value / 3600;
+
+                if (hours > 0) {
+                    value = hours;
+                    unitStringRes = R.string.time_unit_hour;
+                }
+                else if (minutes > 0) {
+                    value = minutes;
+                    unitStringRes = R.string.time_unit_minute;
+                }
+            }
+
+            if (unitStringRes == R.string.time_lt_minute)
+                return context.getResources().getString(unitStringRes);
+
+            return context.getResources().getString(R.string.time_base_format,
+                    value,
+                    context.getResources().getString(unitStringRes),
+                    (value > 1) ? "s" : "");
+        }
+
+        public void updateTimeStamp() {
+            // compute a delta between now and when the sample was captured
+            // generate a human readable (localized) string for expressing the delta
+            if (lastSampleTime == null) return; // update fired & processed before holder ready.
+
+            ZonedDateTime now = ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC);
+
+            Log.d("PRFA", "Now: " + now.toString() + ", Sample: " + lastSampleTime.toString());
+            Duration minorSpan = Duration.between(lastSampleTime, now);
+            Period majorSpan = Period.between(lastSampleTime.toLocalDate(),
+                    now.toLocalDate());
+
+            TextView tv = itemView.findViewById(R.id.sample_age_view);
+            tv.setText(makeAgeStringLabel(itemView.getContext(), majorSpan, minorSpan));
         }
     }
 
@@ -303,6 +395,15 @@ public class PetReviewFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull final ViewHolder holder, int position) {
+            if (holder.uiUpdateObserver == null) {
+                // give it a new observer
+                holder.uiUpdateObserver = event ->
+                    holder.updateTimeStamp();
+
+                viewModel.getUiUpdateSignal().observe(PetReviewFragment.this.getViewLifecycleOwner(),
+                        holder.uiUpdateObserver);
+            }
+
             // request requisite info from view model. The call in async
             // and may take time - as such when processing the result we need
             // to be sure that the context is still valid & that the view holder
@@ -310,17 +411,35 @@ public class PetReviewFragment extends Fragment {
             // so we don't have to worry about all the nuances of concurrency)
             final int id = petIds.get(position);
 
+            Observer<PreliminaryPetInfo> observer = preliminaryPetInfo ->
+                    holder.update(id, preliminaryPetInfo);
+            LiveData<PreliminaryPetInfo> observable = viewModel.getPreliminaryInfoObservable(id, true);
+
+
             // set up the view holder to expect the incoming change:
-            holder.setPendingUpdate(id);
+            if (holder.petInfoObserver != null) {
+                // Prevent the build up of out dated observers.
+                observable.removeObserver(observer);
+            }
+
+            holder.setPendingUpdate(id, observer);
             holder.itemView.setSelected(position == selectedItemPosition);
 
-            // TODO: remove old observer associated to this view holder.
-            viewModel.getPreliminaryInfoObservable(petIds.get(position), true)
-                    .observe(PetReviewFragment.this.getViewLifecycleOwner(),
-                            preliminaryPetInfo -> {
-                                Log.d("PRFA", "observer's onChanged called");
-                                holder.update(id, preliminaryPetInfo);
-                            });
+            observable.observe(PetReviewFragment.this.getViewLifecycleOwner(), observer);
+        }
+
+        @Override
+        public void onViewRecycled(@NonNull ViewHolder holder) {
+            super.onViewRecycled(holder);
+
+            if (holder.petInfoObserver != null) {
+                viewModel.getPreliminaryInfoObservable(holder.petId).removeObserver(holder.petInfoObserver);
+                holder.petInfoObserver = null;
+            }
+            if (holder.uiUpdateObserver != null) {
+                viewModel.getUiUpdateSignal().removeObserver(holder.uiUpdateObserver);
+                holder.uiUpdateObserver = null;
+            }
         }
 
         @Override

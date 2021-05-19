@@ -60,7 +60,7 @@ public class OverviewActivity extends AppCompatActivity {
                 tokenSet -> {
                     if (tokenSet != null) {
                         if (executorService == null || executorService.isShutdown())
-                            startSilentRefreshCycle();
+                            startBackgroundTasks();
                         else
                             scheduleRefreshForExpiry(tokenSet.getAccessExpiry());
                     }
@@ -104,6 +104,8 @@ public class OverviewActivity extends AppCompatActivity {
             // TODO: need a callback for invoking setRefreshing at the best time.
             swipeRefreshLayout.setRefreshing(false);
         });
+
+
     }
 
     @Override
@@ -135,7 +137,7 @@ public class OverviewActivity extends AppCompatActivity {
         super.onPause();
 
         // suspend the refresh service - don't want to be draining battery.
-        stopSilentRefreshCycle(); // handles side conditions, we can call blindly.
+        stopBackgroundTasks(); // handles side conditions, we can call blindly.
     }
 
     @Override
@@ -145,7 +147,7 @@ public class OverviewActivity extends AppCompatActivity {
         // check if we should be running a refresh cycle
         if (LoginRepository.getInstance().getTokens() != null) {
             Log.d("OA", "Resumed with tokens available, starting refresh cycle");
-            startSilentRefreshCycle();
+            startBackgroundTasks();
         }
         else {
             Log.d("OA", "Resumed with no tokens, awaiting LoginActivity success");
@@ -163,11 +165,18 @@ public class OverviewActivity extends AppCompatActivity {
         }
     }
 
-    private void startSilentRefreshCycle() {
+    /**
+     * Starts the cycles that manage background tasks:
+     * - a timer for posting UI update events (events that get updated roughly every 15 seconds.)
+     * - A silent refresh cycle, which manages instigating a refrehs token exchange a few
+     *      seconds before the current refresh token expires.
+     */
+    private void startBackgroundTasks() {
         if (executorService == null || executorService.isShutdown())
-            executorService = Executors.newSingleThreadScheduledExecutor();
+            executorService = Executors.newScheduledThreadPool(2);
+        else return; // if neither are true then the various services are already running.
 
-        else return; // if neither are true then the refresh cycle is already running.
+        executorService.scheduleAtFixedRate(this::dispatchTimedUpdate, 0, 15, TimeUnit.SECONDS);
 
         if (LoginRepository.getInstance().getTokens() != null) {
             // check if the tokens have already expired:
@@ -185,10 +194,10 @@ public class OverviewActivity extends AppCompatActivity {
         }
     }
 
-    private void stopSilentRefreshCycle() {
+    private void stopBackgroundTasks() {
         if (executorService == null || executorService.isShutdown()) return;
 
-        Log.d("OA", "Shutting down token refresh cycle");
+        Log.d("OA", "Shutting down background tasks");
         executorService.shutdownNow();
     }
 
@@ -206,6 +215,7 @@ public class OverviewActivity extends AppCompatActivity {
         Log.d("OA", "Scheduling a refresh to occur at: " + expiryTime.toString() +
                 " (" + span.getSeconds() + " seconds from now)");
 
+
         executorService.schedule(this::silentRefreshHandler,
                 span.getSeconds(),
                 TimeUnit.SECONDS);
@@ -219,6 +229,7 @@ public class OverviewActivity extends AppCompatActivity {
         if (executorService == null || executorService.isShutdown()) return;
 
         Log.d("OA", "Token refresh failure detected, queuing up a retry");
+
         // TODO: count the number of retries since the last success, use that to steadily backoff
         //       and eventually cancel.
         executorService.schedule(this::silentRefreshHandler,
@@ -260,5 +271,20 @@ public class OverviewActivity extends AppCompatActivity {
     private void dispatchRefresh() {
         CommonSignalAwareViewModel viewModel = getActiveFragmentViewModel();
         if (viewModel != null) viewModel.signalRefresh();
+    }
+
+    /**
+     * Notifies the active fragment's main view model of a UI update. (a semi-frequent
+     * dummy livedata update to trigger routine UI updates, such as updating time-related
+     * text labels.)
+     */
+    private void dispatchTimedUpdate() {
+        Log.d("OA", "Update timer fired");
+        try {
+            getActiveFragmentViewModel().signalUiUpdateFromBackground();
+        }
+        catch (Exception e) {
+            Log.e("OA", "Error in dispatching timed update: ", e);
+        }
     }
 }

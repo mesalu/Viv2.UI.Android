@@ -20,10 +20,12 @@ import com.mesalu.viv2.android_ui.ui.events.SimpleEvent;
 public class CommonSignalAwareViewModel extends BaseViewModel {
     protected MutableLiveData<SimpleEvent> fabEvent;
     protected MutableLiveData<SimpleEvent> refreshEvent;
+    protected MutableLiveData<SimpleEvent> uiUpdateEvent;
 
     protected CommonSignalAwareViewModel() {
         fabEvent = new MutableLiveData<>();
         refreshEvent = new MutableLiveData<>();
+        uiUpdateEvent = new MutableLiveData<>();
     }
 
     /**
@@ -43,5 +45,17 @@ public class CommonSignalAwareViewModel extends BaseViewModel {
 
     public LiveData<SimpleEvent> getRefreshSignal() {
         return refreshEvent;
+    }
+
+    public void signalUiUpdate() {
+        uiUpdateEvent.setValue(new SimpleEvent());
+    }
+
+    public void signalUiUpdateFromBackground() {
+        uiUpdateEvent.postValue(new SimpleEvent());
+    }
+
+    public LiveData<SimpleEvent> getUiUpdateSignal() {
+        return uiUpdateEvent;
     }
 }

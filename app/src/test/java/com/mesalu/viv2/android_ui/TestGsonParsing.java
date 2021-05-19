@@ -1,6 +1,7 @@
 package com.mesalu.viv2.android_ui;
 
 import com.google.gson.Gson;
+import com.mesalu.viv2.android_ui.data.Serialization;
 import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
 import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
@@ -24,7 +25,7 @@ public class TestGsonParsing {
                 "        \"coldMat\": 0\n" +
                 "    }";
 
-        Gson gson = new Gson();
+        Gson gson = Serialization.getGson();
         EnvDataSample parsed = gson.fromJson(sample, EnvDataSample.class);
 
         assertNotNull(parsed);
@@ -49,7 +50,7 @@ public class TestGsonParsing {
                 "    \"careTakerId\": \"e810a95a-cbeb-4b0d-803f-1d7fe9bf58fa\"\n" +
                 "}";
 
-        Gson gson = new Gson();
+        Gson gson = Serialization.getGson();
         Pet parsed = gson.fromJson(pet, Pet.class);
 
         assertNotNull(parsed);
@@ -90,19 +91,11 @@ public class TestGsonParsing {
                 "    }\n" +
                 "}";
 
-        Gson gson = new Gson();
+        Gson gson = Serialization.getGson();
         PreliminaryPetInfo parsed = gson.fromJson(payload, PreliminaryPetInfo.class);
 
         assertNotNull(parsed);
         assertNotNull(parsed.getPet());
         assertNotNull(parsed.getSample());
-    }
-
-    @Test
-    public void sanity() {
-        double centigrade = 10.0;
-        double fahrenheit = ((centigrade * 1.8) + 32);
-
-        assertEquals(50.0, fahrenheit, 0.001);
     }
 }

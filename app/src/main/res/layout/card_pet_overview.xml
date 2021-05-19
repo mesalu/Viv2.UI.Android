@@ -25,6 +25,13 @@
             app:barrierDirection="bottom"
             app:constraint_referenced_ids="species_name_view,morph_view" />
 
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/row2_barrier"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="hg_view,hm_view,mg_view,cg_view,cm_view" />
+
         <TextView
             android:id="@+id/name_view"
             android:layout_width="wrap_content"
@@ -39,6 +46,7 @@
             android:id="@+id/species_name_view"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:textAlignment="center"
             app:layout_constraintTop_toBottomOf="@+id/name_view"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@id/morph_view"
@@ -48,6 +56,7 @@
             android:id="@+id/morph_view"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:textAlignment="center"
             app:layout_constraintTop_toBottomOf="@id/name_view"
             app:layout_constraintStart_toEndOf="@id/species_name_view"
             app:layout_constraintEnd_toEndOf="parent"
@@ -97,6 +106,14 @@
             app:layout_constraintTop_toBottomOf="@id/row_barrier"
             />
 
+        <TextView
+            android:id="@+id/sample_age_view"
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:layout_marginEnd="5dp"
+            app:layout_constraintTop_toBottomOf="@id/row2_barrier"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Sample Age Here" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -2,6 +2,7 @@ package com.mesalu.viv2.android_ui.data.model;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 /**
@@ -15,7 +16,7 @@ public class EnvDataSample {
     String envId;
 
     @SerializedName("captured")
-    Date captureTime;
+    ZonedDateTime captureTime;
 
     @SerializedName("hotGlass")
     double hotGlass;
@@ -40,11 +41,11 @@ public class EnvDataSample {
         this.envId = envId;
     }
 
-    public Date getCaptureTime() {
+    public ZonedDateTime getCaptureTime() {
         return captureTime;
     }
 
-    public void setCaptureTime(Date captureTime) {
+    public void setCaptureTime(ZonedDateTime captureTime) {
         this.captureTime = captureTime;
     }
 
