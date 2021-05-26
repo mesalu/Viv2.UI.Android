@@ -1,4 +1,4 @@
-package com.mesalu.viv2.android_ui.data.http.retrofit;
+package com.mesalu.viv2.android_ui.data.http.okhttp.retrofit;
 
 import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
 import com.mesalu.viv2.android_ui.data.model.Environment;
@@ -24,40 +24,38 @@ import retrofit2.http.Query;
  */
 public interface IApiService {
     @GET("pet/ids")
-    Call<List<Integer>> getPetIdList(@HeaderMap Map<String, String> headers);
+    Call<List<Integer>> getPetIdList();
 
     @GET("pet/{id}")
-    Call<Pet> getPetById(@HeaderMap Map<String, String> headers, @Path("id") int id);
+    Call<Pet> getPetById(@Path("id") int id);
 
     /**
-     * @param headers
      * @param a String representing a date time formatting via ISO 8601, indicates start of range
      * @param b String representing a date time formatting via ISO 8601, indicates end of range.
      * @return
      */
     @GET("sample/slice")
-    Call<List<EnvDataSample>> getSamplesInRange(@HeaderMap Map<String, String> headers, String a, String b);
+    Call<List<EnvDataSample>> getSamplesInRange(String a, String b);
 
 
     @GET("pet/{id}/prelim")
-    Call<PreliminaryPetInfo> getPreliminaryInfo(@HeaderMap Map<String, String> headers, @Path("id") int id);
+    Call<PreliminaryPetInfo> getPreliminaryInfo(@Path("id") int id);
 
     @GET("species")
-    Call<List<Species>> getSpeciesInfo(@HeaderMap Map<String, String> headers);
+    Call<List<Species>> getSpeciesInfo();
 
     @POST("pet/add")
-    Call<Integer> addPet(@HeaderMap Map<String, String> headers, @Body NewPetForm form);
+    Call<Integer> addPet(@Body NewPetForm form);
 
     @POST("pet/{id}/migrate")
-    Call<Void> migratePet(@HeaderMap Map<String, String> headers, @Path("id") int id,
-                          @Query("toEnv") String environmentId);
+    Call<Void> migratePet(@Path("id") int id, @Query("toEnv") String environmentId);
 
     @GET("node/mine")
-    Call<List<NodeController>> getControllers(@HeaderMap Map<String, String> headers);
+    Call<List<NodeController>> getControllers();
 
     @GET("environment/{id}")
-    Call<Environment> getEnvironmentInfo(@HeaderMap Map<String, String> headers, @Path("id") String id);
+    Call<Environment> getEnvironmentInfo(@Path("id") String id);
 
     @GET("environment")
-    Call<List<Environment>> getAllEnvironments(@HeaderMap Map<String, String> headers);
+    Call<List<Environment>> getAllEnvironments();
 }

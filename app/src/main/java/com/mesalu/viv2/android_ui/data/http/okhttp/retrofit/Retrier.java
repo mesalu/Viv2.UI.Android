@@ -1,4 +1,4 @@
-package com.mesalu.viv2.android_ui.data.http.retrofit;
+package com.mesalu.viv2.android_ui.data.http.okhttp.retrofit;
 
 import android.util.Log;
 

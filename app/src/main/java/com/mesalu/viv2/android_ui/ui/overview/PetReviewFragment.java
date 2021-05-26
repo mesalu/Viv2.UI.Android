@@ -6,6 +6,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -21,12 +22,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.mesalu.viv2.android_ui.R;
 import com.mesalu.viv2.android_ui.data.LoginRepository;
+import com.mesalu.viv2.android_ui.data.ProfileImageRepository;
 import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
 import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
 import com.mesalu.viv2.android_ui.ui.events.SimpleEvent;
@@ -34,15 +36,14 @@ import com.mesalu.viv2.android_ui.ui.overview.data_entry.PetEntryDialogFragment;
 import com.mesalu.viv2.android_ui.ui.widgets.LedValueView;
 
 import java.time.Duration;
-import java.time.OffsetDateTime;
 import java.time.Period;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
-import java.time.temporal.TemporalUnit;
 import java.util.List;
 
 public class PetReviewFragment extends Fragment {
+    static int IMAGE_CAPTURE_REQUEST_CODE = 1;
+
     private PetInfoViewModel viewModel;
     private Adapter recyclerAdapter;
     private ActionMode.Callback actionModeCallback;
@@ -118,6 +119,15 @@ public class PetReviewFragment extends Fragment {
             if (LoginRepository.getInstance().isLoggedIn())
                 viewModel.fetchPetIdList();
         }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == IMAGE_CAPTURE_REQUEST_CODE) {
+            // Handle image result.
+        }
+        else
+            super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
@@ -336,13 +346,18 @@ public class PetReviewFragment extends Fragment {
 
             ZonedDateTime now = ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC);
 
-            Log.d("PRFA", "Now: " + now.toString() + ", Sample: " + lastSampleTime.toString());
             Duration minorSpan = Duration.between(lastSampleTime, now);
             Period majorSpan = Period.between(lastSampleTime.toLocalDate(),
                     now.toLocalDate());
 
             TextView tv = itemView.findViewById(R.id.sample_age_view);
             tv.setText(makeAgeStringLabel(itemView.getContext(), majorSpan, minorSpan));
+        }
+
+        protected void setProfileImage(int petId) {
+            // Use picasso to acquire, transform and apply the profile image.
+            ImageView imageView = itemView.findViewById(R.id.profile_image);
+            ProfileImageRepository.getInstance().getPetImage(petId, imageView, R.drawable.profile_image_placeholder);
         }
     }
 
@@ -413,6 +428,8 @@ public class PetReviewFragment extends Fragment {
             // hasn't been re-bound. (Luckily, all aspects are processed on UI thread
             // so we don't have to worry about all the nuances of concurrency)
             final int id = petIds.get(position);
+
+            holder.setProfileImage(id);
 
             Observer<PreliminaryPetInfo> observer = preliminaryPetInfo ->
                     holder.update(id, preliminaryPetInfo);

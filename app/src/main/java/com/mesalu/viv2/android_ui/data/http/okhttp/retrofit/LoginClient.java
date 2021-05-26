@@ -1,4 +1,4 @@
-package com.mesalu.viv2.android_ui.data.http.retrofit;
+package com.mesalu.viv2.android_ui.data.http.okhttp.retrofit;
 
 import android.util.Log;
 
@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 import com.mesalu.viv2.android_ui.data.LoginRepository;
 import com.mesalu.viv2.android_ui.data.http.ILoginClient;
+import com.mesalu.viv2.android_ui.data.http.okhttp.OkHttpClientFactory;
 import com.mesalu.viv2.android_ui.data.model.TokenSet;
 
 import java.time.ZonedDateTime;
@@ -62,9 +63,8 @@ public class LoginClient implements ILoginClient {
     ILoginService _service;
 
     public LoginClient() {
-        _service = new HttpClientFactory()
-                .composeClient()
-                .create(ILoginService.class);
+        _service = OkHttpClientFactory.getInstance()
+                .buildRetrofit().create(ILoginService.class);
     }
 
     @Override

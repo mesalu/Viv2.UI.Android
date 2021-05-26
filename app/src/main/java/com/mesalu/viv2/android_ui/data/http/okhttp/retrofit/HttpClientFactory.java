@@ -1,4 +1,4 @@
-package com.mesalu.viv2.android_ui.data.http.retrofit;
+package com.mesalu.viv2.android_ui.data.http.okhttp.retrofit;
 
 import android.content.Context;
 import android.util.Log;
@@ -6,11 +6,13 @@ import android.util.Log;
 import androidx.annotation.RawRes;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.mesalu.viv2.android_ui.Application;
 import com.mesalu.viv2.android_ui.BuildConfig;
 import com.mesalu.viv2.android_ui.R;
 import com.mesalu.viv2.android_ui.data.Serialization;
+import com.mesalu.viv2.android_ui.data.http.ApiCompat;
+import com.squareup.picasso.OkHttp3Downloader;
+import com.squareup.picasso.Picasso;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,9 +35,11 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * - Allows (my) self signed certificate
  * - Sets up logging for the http module.
  */
+@Deprecated
 class HttpClientFactory {
     private Context ctx;
     private OkHttpClient.Builder builder;
+    private OkHttpClient client;
 
     // For authorizing my self-signed-cert in development:
     // (Kinda lame to have it in source here, but its not re-used & its - hopefully - specific
@@ -48,17 +52,25 @@ class HttpClientFactory {
 
         setupLogging(HttpLoggingInterceptor.Level.BASIC);
         setupSsl();
+        client = builder.build();
+    }
+
+    /** Stop gap solution - picasso needs the same treatment we give retrofit.
+     * @return
+     */
+    public Picasso composePicassoClient() {
+        return new Picasso.Builder(Application.getAppContext())
+                .downloader(new OkHttp3Downloader(client))
+                .build();
     }
 
     public Retrofit composeClient() {
         Gson gson = Serialization.getGson();
 
-        String url = (BuildConfig.DEBUG) ? "https://192.168.0.10:5001/api/" : "https://viv2api.azurewebsites.net/api/";
-        //String url = "https://viv2api.azurewebsites.net/api/";
         return new Retrofit.Builder()
-                .baseUrl(url)
+                .baseUrl(ApiCompat.apiUrl)
                 .addConverterFactory(GsonConverterFactory.create(gson))
-                .client(builder.build())
+                .client(client)
                 .build();
     }
 

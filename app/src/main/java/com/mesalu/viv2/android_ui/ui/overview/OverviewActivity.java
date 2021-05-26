@@ -68,8 +68,7 @@ public class OverviewActivity extends AppCompatActivity {
 
         // if we're not logged in at all, then hand off to the login activity.
         if (!LoginRepository.getInstance().isLoggedIn()) {
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivityForResult(intent, LOGIN_REQUEST_CODE);
+            startLoginActivity();
         }
 
         BottomNavigationView navView = findViewById(R.id.nav_view);
@@ -118,7 +117,11 @@ public class OverviewActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_logout) {
-            // TODO, (dump tokens, drop user back on login activity).
+            LoginRepository.getInstance().logout();
+
+            // TODO: clear view models (at least the ones that contain user specific data.)
+
+            startLoginActivity();
         }
 
         else if (id == R.id.action_refresh) {
@@ -163,6 +166,14 @@ public class OverviewActivity extends AppCompatActivity {
         else {
             super.onActivityResult(requestCode, resultCode, data);
         }
+    }
+
+    /**
+     * Starts LoginActivity for a result using the proper request code
+     */
+    private void startLoginActivity() {
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivityForResult(intent, LOGIN_REQUEST_CODE);
     }
 
     /**
