@@ -1,10 +1,13 @@
 package com.mesalu.viv2.android_ui.data;
 
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.util.Log;
 import android.widget.ImageView;
 
 import androidx.annotation.DrawableRes;
+import androidx.core.content.ContextCompat;
 
 import com.mesalu.viv2.android_ui.R;
 import com.mesalu.viv2.android_ui.data.http.ApiCompat;
@@ -54,31 +57,23 @@ public class ProfileImageRepository {
         Uri uri = ApiCompat.imageUriFromPet(petId);
         final WeakReference<ImageView> intoRef = new WeakReference<>(into);
 
-        imageClient.acquireImage(uri, drawable -> {
-            ImageView view = intoRef.get();
-            if (view != null && drawable != null) {
-                // imageView is still (plausibly?) valid.
-                view.setImageDrawable(drawable);
-            }
-        });
-    }
+        Drawable placeholderDrawable = ContextCompat.getDrawable(into.getContext(), R.drawable.profile_image_placeholder);
+        Drawable errorDrawable = ContextCompat.getDrawable(into.getContext(), R.drawable.profile_image_error);
 
-    /**
-     * gets the image configured as the pet's profile image, assigning the ImageView's content
-     * to the acquired bitmap. Note that this requires a weak-reference be kept to the image view.
-     * @param petId id of the pet to acquire an image for.
-     * @param into ImageView to assign the acquired image into
-     * @param errorDrawableId the drawable to use should image acquisition fail.
-     */
-    public void getPetImage(int petId, ImageView into, @DrawableRes int errorDrawableId) {
-        Uri uri = ApiCompat.imageUriFromPet(petId);
-        final WeakReference<ImageView> intoRef = new WeakReference<>(into);
+        if (placeholderDrawable == null || errorDrawable == null) {
+            throw new RuntimeException("Unable to locate required drawable resources.");
+        }
 
-        imageClient.acquireImage(uri, drawable -> {
-            ImageView view = intoRef.get();
-            if (view != null) {
-                view.setImageDrawable(drawable);
-            }
-        }, R.drawable.profile_image_placeholder, R.drawable.profile_image_error);
+        imageClient.acquireImage(uri,
+                drawable -> {
+                        ImageView view = intoRef.get();
+                        if (view != null && drawable != null) {
+                            // imageView is still (plausibly?) valid.
+                            //drawable.applyTheme(view.getContext().getTheme());
+                            view.setImageDrawable(drawable);
+                        }
+                    },
+                placeholderDrawable,
+                errorDrawable);
     }
 }

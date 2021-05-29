@@ -3,10 +3,10 @@
     xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <item
-        android:drawable="@drawable/led_status_bad"
+        android:drawable="@drawable/led_status_cold"
         android:maxLevel="0" />
     <item
-        android:drawable="@drawable/led_status_warn"
+        android:drawable="@drawable/led_status_hot"
         android:maxLevel="1" />
 
     <item

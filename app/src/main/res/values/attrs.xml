@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="colorProfileTint" format="color" />
+    <attr name="colorLedStrokeHot" format="color"/>
+    <attr name="colorLedStrokeAcceptable" format="color"/>
+    <attr name="colorLedStrokeCold" format="color"/>
+    <attr name="colorLedFillHot" format="color"/>
+    <attr name="colorLedFillAcceptable" format="color"/>
+    <attr name="colorLedFillCold" format="color"/>
+    <attr name="dimenLedStroke" format="dimension"/>
+</resources>

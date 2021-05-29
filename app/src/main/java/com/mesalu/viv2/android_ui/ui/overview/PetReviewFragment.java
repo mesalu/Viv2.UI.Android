@@ -162,6 +162,11 @@ public class PetReviewFragment extends Fragment {
         viewModel.getRefreshSignal().observe(getViewLifecycleOwner(), event -> {
             if (event.consume()) {
                 Log.d("PRF", "Refresh handler notified");
+                if (activeActionMode != null) {
+                    activeActionMode.finish();
+                }
+
+                progressBar.setVisibility(View.VISIBLE);
 
                 if (viewModel.petIdListLoaded()) {
                     viewModel.refreshAllPreliminaryPetInfo();
@@ -204,10 +209,13 @@ public class PetReviewFragment extends Fragment {
         public synchronized void setPendingUpdate(int id, Observer<PreliminaryPetInfo> petInfoObserver) {
             this.petInfoObserver = petInfoObserver;
             petId = id;
+            itemView.findViewById(R.id.progress_circular).setVisibility(View.VISIBLE);
         }
 
         public void update(int id, PreliminaryPetInfo data) {
             if (id != petId) return; // got re-bound before callback finished
+
+            itemView.findViewById(R.id.progress_circular).setVisibility(View.GONE);
 
             // update view with content.
             TextView textView = itemView.findViewById(R.id.name_view);
@@ -262,7 +270,7 @@ public class PetReviewFragment extends Fragment {
                     R.id.mg_view, R.id.cg_view, R.id.cm_view }) {
                 LedValueView ledView = itemView.findViewById(resId);
                 ledView.setText(R.string.na_entry);
-                ledView.setLedLevel(LedValueView.LedLevel.WARN);
+                ledView.setLedLevel(LedValueView.LedLevel.GOOD);
             }
 
             // Clear latest sample time, so that the ui update event
@@ -276,15 +284,20 @@ public class PetReviewFragment extends Fragment {
             return (float) ((centigrade * 1.8) + 32);
         }
 
+        /**
+         * Sets the level of the LED in accordance to x w.r.t the range [a, b]
+         * @param view the LedValueView to operate on
+         * @param a low end of the range.
+         * @param b high end of the range.
+         * @param x given measurement
+         */
         public static void setLed(@NonNull LedValueView view, float a, float b, float x) {
-            float range = b - a;
-            float tolerance = range / 10;
-            if (Math.abs(a - x) < tolerance || Math.abs(b - x) < tolerance)
-                view.setLedLevel(LedValueView.LedLevel.WARN);
+            if (x < a)
+                view.setLedLevel(LedValueView.LedLevel.LOW);
             else if (a < x && x < b)
                 view.setLedLevel(LedValueView.LedLevel.GOOD);
             else
-                view.setLedLevel(LedValueView.LedLevel.BAD);
+                view.setLedLevel(LedValueView.LedLevel.HIGH);
         }
 
         private String makeAgeStringLabel(Context context, Period major, Duration minor) {
@@ -357,7 +370,7 @@ public class PetReviewFragment extends Fragment {
         protected void setProfileImage(int petId) {
             // Use picasso to acquire, transform and apply the profile image.
             ImageView imageView = itemView.findViewById(R.id.profile_image);
-            ProfileImageRepository.getInstance().getPetImage(petId, imageView, R.drawable.profile_image_placeholder);
+            ProfileImageRepository.getInstance().getPetImage(petId, imageView);
         }
     }
 
@@ -429,12 +442,14 @@ public class PetReviewFragment extends Fragment {
             // so we don't have to worry about all the nuances of concurrency)
             final int id = petIds.get(position);
 
-            holder.setProfileImage(id);
 
+            holder.setProfileImage(id);
             Observer<PreliminaryPetInfo> observer = preliminaryPetInfo ->
                     holder.update(id, preliminaryPetInfo);
-            LiveData<PreliminaryPetInfo> observable = viewModel.getPreliminaryInfoObservable(id, true);
 
+            // Get the observable - request new data if plausibly stale. (e.g., not a select-notification)
+            LiveData<PreliminaryPetInfo> observable =
+                    viewModel.getPreliminaryInfoObservable(id, holder.petId != id);
 
             // set up the view holder to expect the incoming change:
             if (holder.petInfoObserver != null) {

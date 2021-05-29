@@ -19,7 +19,7 @@ import java.util.Locale;
 
 public class LedValueView extends ConstraintLayout {
     public enum LedLevel {
-        BAD, WARN, GOOD
+        LOW, HIGH, GOOD
     }
 
     private ImageView imageView;
@@ -27,17 +27,17 @@ public class LedValueView extends ConstraintLayout {
 
     public LedValueView(@NonNull Context context) {
         super(context);
-        _init();
+        init();
     }
 
     public LedValueView(@NonNull Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        _init();
+        init();
     }
 
     public LedValueView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        _init();
+        init();
     }
 
     public void setLedLevel(LedLevel level) {
@@ -70,7 +70,7 @@ public class LedValueView extends ConstraintLayout {
         setText(val, 2);
     }
 
-    private void  _init() {
+    private void init() {
         // inflate layout:
         inflate(getContext(), R.layout.widget_led_and_val, this);
         imageView = findViewById(R.id.image);

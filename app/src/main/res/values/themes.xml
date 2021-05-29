@@ -1,13 +1,24 @@
 <resources>
     <!-- Base application theme. -->
     <style name="Theme.Viv2" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorSecondary">@color/colorSecondary</item>
-        <item name="colorOnSecondary">@color/colorOnSecondary</item>
-        <item name="colorOnSurface">@color/colorOnSecondary</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:navigationBarColor">@color/colorPrimaryDark</item>
+        <item name="colorPrimaryDark">@color/lt_primaryDark</item>
+        <item name="colorPrimary">@color/lt_primary</item>
+        <item name="colorSecondary">@color/lt_secondary</item>
+        <item name="colorOnSecondary">@color/lt_secondaryText</item>
+        <item name="colorOnSurface">@color/lt_secondaryDark</item>
+        <item name="colorAccent">@color/lt_secondaryLight</item>
+        <item name="colorProfileTint">@android:color/white</item>
+        <item name="android:navigationBarColor">@color/lt_primaryDark</item>
+
+
+        <!-- Theme attributes for the LED widget -->
+        <item name="colorLedFillCold">@android:color/holo_blue_bright</item>
+        <item name="colorLedFillAcceptable">@android:color/holo_green_dark</item>
+        <item name="colorLedFillHot">@android:color/holo_red_dark</item>
+        <item name="colorLedStrokeHot">@color/led_edge</item>
+        <item name="colorLedStrokeAcceptable">@color/led_edge</item>
+        <item name="colorLedStrokeCold">@color/led_edge</item>
+        <item name="dimenLedStroke">@dimen/led_border_stroke_width</item>
 
         <item name="bottomNavigationStyle">@style/Widget.App.BottomNavigationView</item>
         <item name="bottomAppBarStyle">@style/Widget.App.BottomAppBarView</item>
@@ -16,7 +27,7 @@
     <style name="Widget.App.BottomAppBarView" parent="Widget.MaterialComponents.BottomAppBar.Colored">
         <item name="contentInsetEnd">0dp</item>
         <item name="contentInsetStart">0dp</item>
-        <item name="backgroundTint">@color/colorPrimaryDark</item>
+        <item name="backgroundTint">@color/lt_primaryDark</item>
     </style>
 
     <!-- Style bottom navigations -->

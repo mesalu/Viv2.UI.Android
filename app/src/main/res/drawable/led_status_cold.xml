@@ -4,10 +4,9 @@
     android:shape="oval">
 
     <stroke
-        android:width="@dimen/led_border_stroke_width"
-        android:color="@color/led_edge"/>
+        android:width="?attr/dimenLedStroke"
+        android:color="?attr/colorLedStrokeCold"/>
 
-    <solid
-        android:color="@color/led_warn"/>
+    <solid android:color="?attr/colorLedFillCold"/>
 
 </shape>

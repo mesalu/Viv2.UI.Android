@@ -31,6 +31,7 @@
     <string name="action_logout">Logout</string>
     <string name="action_delete">Delete</string>
     <string name="action_chart">Show History</string>
+    <string name="action_set_profile_photo">Profile Image</string>
 
     <!-- Misc labels/titles/etc. -->
     <string name="nyi_short">NYI</string>
@@ -69,5 +70,7 @@
     <string name="time_unit_day">day</string>
     <string name="time_unit_hour">hour</string>
     <string name="time_unit_minute">minute</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 
 </resources>

@@ -1,11 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Basic theme components -->
-    <color name="colorPrimary">#474948</color>
-    <color name="colorPrimaryDark">#292929</color>
-    <color name="colorAccent">#D88916</color>
-    <color name="colorSecondary">#D88916</color>
-    <color name="colorOnSecondary">#474948</color>
+    <!-- colors for light theme -->
+    <color name="lt_surface">#ffffff</color>
+    <color name="lt_primary">#424242</color>
+    <color name="lt_primaryLight">#6d6d6d</color>
+    <color name="lt_primaryDark">#1b1b1b</color>
+    <color name="lt_secondary">#EC9514</color>
+    <color name="lt_secondaryLight">#ffd95b</color>
+    <color name="lt_secondaryDark">#c77800</color>
+    <color name="lt_primaryText">#ffffff</color>
+    <color name="lt_secondaryText">#000000</color>
+
+
+    <!-- colors for dark theme -->
+    <color name="dt_surface">#121212</color>
+    <color name="dt_primary">#424242</color>
+    <color name="dt_primaryLight">#6d6d6d</color>
+    <color name="dt_primaryDark">#1b1b1b</color>
+    <color name="dt_secondary">#512da8</color>
+    <color name="dt_secondaryLight">#8559da</color>
+    <color name="dt_secondaryDark">#512da8</color>
+    <color name="dt_primaryText">#ffffff</color>
+    <color name="dt_secondaryText">#000000</color>
+
+    <color name="dt_led_cold">#0288D1</color>
+    <color name="dt_led_acceptable">#388E3C</color>
+    <color name="dt_led_hot">#D32F2F</color>
+
+    <color name="error">#D32F2F</color>
+
+
 
     <!-- Login template defaults -->
     <color name="purple_200">#FFBB86FC</color>
