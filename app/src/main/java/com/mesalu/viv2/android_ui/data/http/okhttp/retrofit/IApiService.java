@@ -37,6 +37,11 @@ public interface IApiService {
     @GET("sample/slice")
     Call<List<EnvDataSample>> getSamplesInRange(String a, String b);
 
+    @GET("pet/{id}/samples")
+    Call<List<EnvDataSample>> getSamplesInRangeForPet(@Path("id") int id,
+                                                      @Query("start") String start,
+                                                      @Query("end") String end);
+
 
     @GET("pet/{id}/prelim")
     Call<PreliminaryPetInfo> getPreliminaryInfo(@Path("id") int id);

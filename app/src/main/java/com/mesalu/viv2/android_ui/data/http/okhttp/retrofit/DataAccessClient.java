@@ -15,6 +15,8 @@ import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
 import com.mesalu.viv2.android_ui.data.model.Species;
 import com.mesalu.viv2.android_ui.data.http.okhttp.OkHttpClientFactory;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
@@ -50,16 +52,36 @@ public class DataAccessClient implements IDataAccessClient {
     }
 
     @Override
-    public void getSamplesInDateRange(Date a, Date b, Consumer<List<EnvDataSample>> callback) {
-        String start = DateTimeFormatter.ISO_INSTANT.format(a.toInstant());
-        String end = DateTimeFormatter.ISO_INSTANT.format(b.toInstant());
+    public void getSamplesInDateRange(Pet pet, Instant a, Instant b, Consumer<Result<List<EnvDataSample>>> callback) {
+        getSamplesInDateRange(pet.getId(), a, b, callback);
+    }
+
+    @Override
+    public void getSamplesInDateRange(int petId, Instant a, Instant b, Consumer<Result<List<EnvDataSample>>> callback) {
+        String start = DateTimeFormatter.ISO_INSTANT.format(a);
+        String end = DateTimeFormatter.ISO_INSTANT.format(b);
 
         Call<List<EnvDataSample>> call = _clientService
-                .getSamplesInRange(start, end);
+                .getSamplesInRangeForPet(petId, start, end);
 
         new Retrier<List<EnvDataSample>>()
                 .withCall(call)
-                .withCallback(_callbackFromConsumer(callback))
+                .withCallback(new Callback<List<EnvDataSample>>() {
+                    @Override
+                    public void onResponse(Call<List<EnvDataSample>> call, Response<List<EnvDataSample>> response) {
+                        // send back  a good result
+                        if (response.body() == null || response.code() < 200 || response.code() >= 300)
+                            callback.accept(new Result.Error(new RuntimeException("Failed to acquire sample page")));
+
+                        callback.accept(new Result.Success<List<EnvDataSample>>(response.body()));
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<EnvDataSample>> call, Throwable t) {
+                        // send back an error result.
+                        callback.accept(new Result.Error(t));
+                    }
+                })
                 .proceed();
     }
 

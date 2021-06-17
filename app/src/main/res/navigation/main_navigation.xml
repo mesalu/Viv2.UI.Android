@@ -6,13 +6,13 @@
 
     <fragment
         android:id="@+id/navigation_pet"
-        android:name="com.mesalu.viv2.android_ui.ui.overview.PetReviewFragment"
+        android:name="com.mesalu.viv2.android_ui.ui.main.PetFragment"
         android:label="@string/title_pet"
         tools:layout="@layout/fragment_pet_review" />
 
     <fragment
         android:id="@+id/navigation_env"
-        android:name="com.mesalu.viv2.android_ui.ui.overview.EnvironmentReviewFragment"
+        android:name="com.mesalu.viv2.android_ui.ui.main.EnvironmentFragment"
         android:label="@string/title_env"
         tools:layout="@layout/fragment_environment_review" />
 </navigation>

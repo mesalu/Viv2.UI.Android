@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:context=".ui.charting.ChartFragment">
+
+    <ProgressBar
+        android:id="@+id/progress_circular"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/chart"
+        app:layout_constraintBottom_toBottomOf="@id/chart"
+        tools:visibility="visible" />
+
+    <!-- Radio group for selecting data recency range -->
+    <RadioGroup
+        android:id="@+id/radio_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <RadioButton
+            android:id="@+id/date_range_month"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/time_range_month" />
+
+        <RadioButton
+            android:id="@+id/date_range_week"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/time_range_week" />
+
+        <RadioButton
+            android:id="@+id/date_range_day"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/time_range_day" />
+
+        <RadioButton
+            android:id="@+id/date_range_12hour"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/time_range_12_hour" />
+
+        <RadioButton
+            android:id="@+id/date_range_hour"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/time_range_1_hour" />
+
+    </RadioGroup>
+
+    <!-- the chart is aligning / sizing weirdly in emulator (looks fine in
+            tools though. :shrug:
+            To combat this, let's try wrapping it in another layout to see
+            if its just not playing nice with constraints -->
+
+    <com.github.mikephil.charting.charts.LineChart
+        android:id="@+id/chart"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="5dp"
+        app:layout_constraintDimensionRatio="w,9:16"
+        app:layout_constraintTop_toBottomOf="@id/radio_group"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <CheckBox
+        android:id="@+id/toggle_hsie"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sensor_label_hsie_short"
+        app:layout_constraintTop_toBottomOf="@id/chart"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/toggle_hsue"/>
+
+    <CheckBox
+        android:id="@+id/toggle_hsue"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sensor_label_hsue_short"
+        app:layout_constraintTop_toBottomOf="@id/chart"
+        app:layout_constraintStart_toEndOf="@id/toggle_hsie"
+        app:layout_constraintEnd_toStartOf="@id/toggle_mie"/>
+
+    <CheckBox
+        android:id="@+id/toggle_mie"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sensor_label_mie_short"
+        app:layout_constraintTop_toBottomOf="@id/chart"
+        app:layout_constraintStart_toEndOf="@id/toggle_hsue"
+        app:layout_constraintEnd_toStartOf="@id/toggle_csie" />
+
+    <CheckBox
+        android:id="@+id/toggle_csie"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sensor_label_csie_short"
+        app:layout_constraintTop_toBottomOf="@id/chart"
+        app:layout_constraintStart_toEndOf="@id/toggle_mie"
+        app:layout_constraintEnd_toStartOf="@id/toggle_csue"/>
+
+    <CheckBox
+        android:id="@+id/toggle_csue"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/sensor_label_csue_short"
+        app:layout_constraintTop_toBottomOf="@id/chart"
+        app:layout_constraintStart_toEndOf="@id/toggle_csie"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

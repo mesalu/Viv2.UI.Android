@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.annotation.NonNull;
 
-import com.mesalu.viv2.android_ui.data.LoginDataSource;
 import com.mesalu.viv2.android_ui.data.LoginRepository;
 
 /**

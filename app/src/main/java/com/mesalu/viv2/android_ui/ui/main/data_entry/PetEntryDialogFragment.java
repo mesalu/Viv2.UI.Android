@@ -1,4 +1,4 @@
-package com.mesalu.viv2.android_ui.ui.overview.data_entry;
+package com.mesalu.viv2.android_ui.ui.main.data_entry;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -15,7 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.mesalu.viv2.android_ui.R;
 import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.data.model.Species;
-import com.mesalu.viv2.android_ui.ui.overview.PetInfoViewModel;
+import com.mesalu.viv2.android_ui.ui.main.PetInfoViewModel;
 
 import java.util.ArrayList;
 import java.util.List;

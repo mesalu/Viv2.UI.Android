@@ -1,8 +1,10 @@
-package com.mesalu.viv2.android_ui.ui.overview;
+package com.mesalu.viv2.android_ui.ui.main;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
@@ -16,12 +18,16 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.mesalu.viv2.android_ui.R;
 import com.mesalu.viv2.android_ui.data.LoginRepository;
+import com.mesalu.viv2.android_ui.ui.charting.ChartFragment;
+import com.mesalu.viv2.android_ui.ui.charting.ChartTarget;
+import com.mesalu.viv2.android_ui.ui.events.ChartTargetEvent;
 import com.mesalu.viv2.android_ui.ui.login.LoginActivity;
 
 import java.time.Duration;
@@ -36,7 +42,7 @@ import java.util.concurrent.TimeUnit;
  * by default if no user logged in), and offers other navigation paths, such
  * as signing out, or entering a pet-specific management activity.
  */
-public class OverviewActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity {
     // used to drive the silent refresh loop under the UI
     // anchored here in a UI-activity so that it
     // can be start/stopped in accordance to app activity.
@@ -46,16 +52,16 @@ public class OverviewActivity extends AppCompatActivity {
     //       So that will be a bug to be on the lookout for.
     private ScheduledExecutorService executorService;
 
-    private static int LOGIN_REQUEST_CODE = 1;
+    private static final int LOGIN_REQUEST_CODE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_overview);
+        setContentView(R.layout.activity_main);
 
         // Auth token life cycle management:
         // whenever we get a new token set, schedule a refresh for
-        // when it expires - handle initializing if necessary when recieving tokenset..
+        // when it expires - handle initializing if necessary when receiving token set..
         LoginRepository.getInstance().getObservable().observe(this,
                 tokenSet -> {
                     if (tokenSet != null) {
@@ -104,7 +110,66 @@ public class OverviewActivity extends AppCompatActivity {
             swipeRefreshLayout.setRefreshing(false);
         });
 
+        // setup call backs with view models for interacting with the chart fragment
+        Observer<ChartTargetEvent> showChartObserver = event -> {
+            ChartTarget target = event.consume();
+            Fragment fragment = getSupportFragmentManager()
+                    .findFragmentByTag(ChartFragment.MGR_TAG);
 
+            if (target == null && event.peek() != null) {
+                // a properly consumed event & not a fresh message to hide the chart.
+                return;
+            }
+
+            if (target != null) {
+                // This logic gets a bit trickier if we ever support multiple chart fragments in
+                // the manager at any given time (e.g. one per accessed data context) - as
+                // we'll need to work out which one is shown & transitioning between them. However,
+                // for now, its a pretty simple 4 state, 3 outcome scenario:
+                if (fragment == null && !event.shouldShowChart()) return;
+                else if (fragment == null) {
+                    // create a new fragment via a transaction, have the transaction handle
+                    // setting the chart target when the fragment is ready.
+                    getSupportFragmentManager().beginTransaction()
+                            .setReorderingAllowed(true)
+                            .add(R.id.chart_fragment_container, ChartFragment.class, null, ChartFragment.MGR_TAG)
+                            .runOnCommit(() -> {
+                                // get the fragment to load data.
+                                ChartFragment chartFragment = (ChartFragment) getSupportFragmentManager()
+                                        .findFragmentByTag(ChartFragment.MGR_TAG);
+
+                                if (chartFragment != null) chartFragment.resetToTarget(target);
+                                else Log.e("MainActivity", "onCommit Runnable not suitable for this use");
+
+                                findViewById(R.id.chart_fragment_container).setVisibility(View.VISIBLE);
+                                if (fab.isOrWillBeShown()) fab.hide();
+                            })
+                            .commit();
+                }
+                else {
+                    // we have the fragment - whether or now the chart needs to be shown is irrelevant
+                    ((ChartFragment) fragment).resetToTarget(target);
+                }
+            }
+            else {
+                // The event's content was null, e.g. "Hide the chart" / "Done with chart".
+                if (fragment != null)
+                    getSupportFragmentManager().beginTransaction()
+                            .setReorderingAllowed(true)
+                            .remove(fragment)
+                            .runOnCommit(() ->{
+                                findViewById(R.id.chart_fragment_container).setVisibility(View.GONE);
+                                if (fab.isOrWillBeHidden()) fab.show();
+                            })
+                            .commit();
+            }
+        };
+
+        ViewModelProvider viewModelProvider = new ViewModelProvider(this);
+        CommonSignalAwareViewModel viewModel = viewModelProvider.get(EnvironmentInfoViewModel.class);
+        viewModel.getChartTargetSignal().observe(this, showChartObserver);
+        viewModel = viewModelProvider.get(PetInfoViewModel.class);
+        viewModel.getChartTargetSignal().observe(this, showChartObserver);
     }
 
     @Override

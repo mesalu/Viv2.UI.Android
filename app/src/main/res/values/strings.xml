@@ -19,13 +19,6 @@
     <string name="title_env">Environment</string>
     <string name="title_envs">Environments</string>
 
-    <!-- Chart labels -->
-    <string name="chart_therm_hot_glass_label">Hot-side Glass</string>
-    <string name="chart_therm_hot_mat_label">Hot-side Mat</string>
-    <string name="chart_therm_mid_glass_label">Mid Glass</string>
-    <string name="chart_therm_cold_glass_label">Cold-side Glass</string>
-    <string name="chart_therm_cold_mat_label">Cold-side Glass</string>
-
     <!-- Action labels -->
     <string name="action_refresh">Refresh</string>
     <string name="action_logout">Logout</string>
@@ -72,5 +65,25 @@
     <string name="time_unit_minute">minute</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+
+
+    <!-- Time range labels for chart fragment radio buttons -->
+    <string name="time_range_month">30D</string>
+    <string name="time_range_week">7D</string>
+    <string name="time_range_day">24H</string>
+    <string name="time_range_12_hour">12H</string>
+    <string name="time_range_1_hour">1H</string>
+
+    <!-- New labels for sensor locations -->
+    <string name="sensor_label_hsie_short">HSIE</string>
+    <string name="sensor_label_hsie_long">Hot Side Inside Enclosure</string>
+    <string name="sensor_label_csie_short">CSIE</string>
+    <string name="sensor_label_csie_long">Cold Side Inside Enclosure</string>
+    <string name="sensor_label_hsue_short">HSUE</string>
+    <string name="sensor_label_hsue_long">Hot Side Under Enclosure</string>
+    <string name="sensor_label_csue_short">CSUE</string>
+    <string name="sensor_label_csue_long">Cold Side Under Enclosure</string>
+    <string name="sensor_label_mie_short">MIE</string>
+    <string name="sensor_label_mie_long">Mid Inside Enclosure</string>
 
 </resources>

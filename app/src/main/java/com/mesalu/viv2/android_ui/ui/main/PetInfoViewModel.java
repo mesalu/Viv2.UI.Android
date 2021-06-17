@@ -1,9 +1,7 @@
-package com.mesalu.viv2.android_ui.ui.overview;
+package com.mesalu.viv2.android_ui.ui.main;
 
-import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
 
 import com.mesalu.viv2.android_ui.data.PetInfoRepository;
 import com.mesalu.viv2.android_ui.data.model.Pet;

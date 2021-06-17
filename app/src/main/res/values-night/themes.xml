@@ -7,6 +7,7 @@
         <item name="colorSecondary">@color/dt_secondary</item>
         <item name="colorOnSecondary">@color/dt_secondaryText</item>
         <item name="colorOnSurface">@color/dt_secondaryDark</item>
+        <item name="colorOnPrimarySurface">@color/dt_secondaryLight</item>
         <item name="colorAccent">@color/dt_secondaryLight</item>
         <item name="colorProfileTint">@color/dt_surface</item>
 

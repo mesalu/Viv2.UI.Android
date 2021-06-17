@@ -1,4 +1,4 @@
-package com.mesalu.viv2.android_ui.ui.overview;
+package com.mesalu.viv2.android_ui.ui.main;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;

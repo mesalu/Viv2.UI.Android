@@ -1,4 +1,4 @@
-package com.mesalu.viv2.android_ui.ui.overview;
+package com.mesalu.viv2.android_ui.ui.main;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
@@ -20,20 +20,27 @@ import com.mesalu.viv2.android_ui.R;
 import com.mesalu.viv2.android_ui.data.model.Environment;
 import com.mesalu.viv2.android_ui.data.model.NodeController;
 import com.mesalu.viv2.android_ui.data.model.Pet;
-import com.mesalu.viv2.android_ui.ui.overview.data_entry.PetEntryDialogFragment;
-import com.mesalu.viv2.android_ui.ui.overview.data_entry.PetMigrationDialogFragment;
+import com.mesalu.viv2.android_ui.ui.main.data_entry.PetMigrationDialogFragment;
 import com.mesalu.viv2.android_ui.ui.widgets.ControllerCard;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class EnvironmentReviewFragment extends Fragment {
+public class EnvironmentFragment extends Fragment {
 
     private EnvironmentInfoViewModel envInfoViewModel;
     private PetInfoViewModel petInfoViewModel;
 
-    public static EnvironmentReviewFragment newInstance() {
-        return new EnvironmentReviewFragment();
+    public static EnvironmentFragment newInstance() {
+        return new EnvironmentFragment();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (envInfoViewModel != null)
+            // hide the chart if shown. (behavior not yet implemented.)
+            envInfoViewModel.setChartTargetAs(null);
     }
 
     @Override
@@ -136,7 +143,7 @@ public class EnvironmentReviewFragment extends Fragment {
 
                 int finalI = i;
                 envInfoViewModel.getEnvironmentObservable(envId).observe(
-                        EnvironmentReviewFragment.this.getViewLifecycleOwner(),
+                        EnvironmentFragment.this.getViewLifecycleOwner(),
                         environment -> {
                             holder.onEnvironmentLoaded(controller.getId(), finalI, environment);
 

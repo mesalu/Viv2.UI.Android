@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <base-config>
+    <debug-overrides>
         <trust-anchors>
             <certificates src="@raw/ca_certificate"/>
             <certificates src="@raw/certificate"/>
             <certificates src="system"/>
         </trust-anchors>
-    </base-config>
+    </debug-overrides>
 </network-security-config>

@@ -1,11 +1,15 @@
-package com.mesalu.viv2.android_ui.ui.overview;
+package com.mesalu.viv2.android_ui.ui.main;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
 import com.mesalu.viv2.android_ui.ui.BaseViewModel;
+import com.mesalu.viv2.android_ui.ui.charting.ChartTarget;
+import com.mesalu.viv2.android_ui.ui.events.ChartTargetEvent;
+import com.mesalu.viv2.android_ui.ui.events.ConsumableEvent;
 import com.mesalu.viv2.android_ui.ui.events.SimpleEvent;
+
+import java.util.UUID;
 
 /**
  * Base class for view models that support communicating FAB button presses & other common
@@ -18,14 +22,18 @@ import com.mesalu.viv2.android_ui.ui.events.SimpleEvent;
  * implementations.
  */
 public class CommonSignalAwareViewModel extends BaseViewModel {
-    protected MutableLiveData<SimpleEvent> fabEvent;
-    protected MutableLiveData<SimpleEvent> refreshEvent;
-    protected MutableLiveData<SimpleEvent> uiUpdateEvent;
+    private final MutableLiveData<SimpleEvent> fabEvent;
+    private final MutableLiveData<SimpleEvent> refreshEvent;
+    private final MutableLiveData<SimpleEvent> uiUpdateEvent;
+    private final MutableLiveData<ChartTargetEvent> chartTargetEvent;
+
+
 
     protected CommonSignalAwareViewModel() {
         fabEvent = new MutableLiveData<>();
         refreshEvent = new MutableLiveData<>();
         uiUpdateEvent = new MutableLiveData<>();
+        chartTargetEvent = new MutableLiveData<>();
     }
 
     /**
@@ -58,4 +66,29 @@ public class CommonSignalAwareViewModel extends BaseViewModel {
     public LiveData<SimpleEvent> getUiUpdateSignal() {
         return uiUpdateEvent;
     }
+
+    public LiveData<ChartTargetEvent> getChartTargetSignal() {
+        return chartTargetEvent;
+    }
+
+    /**
+     * Signals the consumer of chart-targeting events that the chart should target the pet
+     * with the specified ID. If the chart is hidden it will only be shown if showIfHidden is true.
+     * @param target a chart target specifying the entity for which sample data should be displayed
+     * @param showIfHidden should the chart target be shown if hidden?
+     */
+    public void setChartTargetAs(ChartTarget target, boolean showIfHidden) {
+        chartTargetEvent.postValue(new ChartTargetEvent(target, showIfHidden));
+    }
+
+    /**
+     * As setChartTargetAs(ChartTarget, boolean) except that showIfHidden defaults to true.
+     * @param target a chart target specifying the entity for which sample data should be displayed
+     */
+    public void setChartTargetAs(ChartTarget target) {
+        chartTargetEvent.postValue(new ChartTargetEvent(target, true));
+    }
+
+
+
 }

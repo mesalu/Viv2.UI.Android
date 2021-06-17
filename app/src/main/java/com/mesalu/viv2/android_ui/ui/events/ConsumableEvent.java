@@ -17,7 +17,7 @@ public class ConsumableEvent <T> {
     private T data;
     protected boolean consumed;
 
-    ConsumableEvent(T data) {
+    public ConsumableEvent(T data) {
         this.data = data;
         consumed = false;
     }

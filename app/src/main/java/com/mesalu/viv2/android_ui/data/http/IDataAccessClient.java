@@ -9,6 +9,8 @@ import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
 import com.mesalu.viv2.android_ui.data.model.Species;
 import com.mesalu.viv2.android_ui.data.model.TokenSet;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
@@ -21,7 +23,8 @@ public interface IDataAccessClient {
     void getPetIdList(Consumer<List<Integer>> callback);
     void getPet(int id, Consumer<Pet> callback);
     void getPreliminaryPetInfo(int id, Consumer<PreliminaryPetInfo> callback);
-    void getSamplesInDateRange(Date a, Date b, Consumer<List<EnvDataSample>> callback);
+    void getSamplesInDateRange(int petId, Instant a, Instant b, Consumer<Result<List<EnvDataSample>>> callback);
+    void getSamplesInDateRange(Pet pet, Instant a, Instant b, Consumer<Result<List<EnvDataSample>>> callback);
     void getSpeciesList(Consumer<List<Species>> callback);
     void addPet(Pet pet, Consumer<Pet> callback);
     void getControllerList(Consumer<List<NodeController>> callback);

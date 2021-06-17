@@ -1,4 +1,4 @@
-package com.mesalu.viv2.android_ui.ui.overview.data_entry;
+package com.mesalu.viv2.android_ui.ui.main.data_entry;
 
 /*
  * General dialogfragment blurb here:
