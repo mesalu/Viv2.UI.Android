@@ -98,10 +98,12 @@ public final class SampleRepository {
             for (Instant cursor = startPage; cursor.isBefore(endPage) || cursor.equals(endPage); cursor = cursor.plusSeconds(pageLengthSeconds)) {
                 boolean havePage = pageMap.containsKey(cursor);
                 pendingMap.put(cursor, havePage);
-                if (!havePage) {
-                    // kick off request sequence here?
-                }
             }
+
+            // Stop gap for making sure we don't 'block' new data - to be replaced with proper
+            // caching.
+            // TODO: replace with proper 'live page' caching.
+            pendingMap.put(endPage, false);
         }
 
         void recvPage(SamplePage page) {
