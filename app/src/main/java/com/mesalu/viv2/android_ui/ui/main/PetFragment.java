@@ -1,6 +1,5 @@
 package com.mesalu.viv2.android_ui.ui.main;
 
-import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
@@ -26,8 +25,6 @@ import android.widget.ProgressBar;
 import com.mesalu.viv2.android_ui.R;
 import com.mesalu.viv2.android_ui.data.LoginRepository;
 import com.mesalu.viv2.android_ui.data.model.Pet;
-import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
-import com.mesalu.viv2.android_ui.ui.charting.ChartFragment;
 import com.mesalu.viv2.android_ui.ui.charting.ChartTarget;
 import com.mesalu.viv2.android_ui.ui.main.data_entry.PetEntryDialogFragment;
 
@@ -173,7 +170,7 @@ public class PetFragment extends Fragment {
                 progressBar.setVisibility(View.VISIBLE);
 
                 if (viewModel.petIdListLoaded()) {
-                    viewModel.refreshAllPreliminaryPetInfo();
+                    viewModel.refreshAllPetInfo();
                 }
             }
         });
@@ -188,7 +185,7 @@ public class PetFragment extends Fragment {
      */
     private static class ModelItem {
         int id;
-        PreliminaryPetInfo model;
+        Pet model;
         boolean awaitingUpdate;
 
         public ModelItem(int id) {
@@ -298,21 +295,22 @@ public class PetFragment extends Fragment {
             holder.setProfileImage(item.id);
             holder.showProgressIndicators(item.awaitingUpdate);
 
-            Observer<PreliminaryPetInfo> observer = preliminaryPetInfo -> {
+            Observer<Pet> observer = petInfo -> {
                 // hide the progress indicator if applicable (going from no data to data, or from
                 // old (cached) data to fresh data.
-                if (preliminaryPetInfo != item.model) {
+                if (petInfo != item.model) {
                     item.awaitingUpdate = false;
                     holder.showProgressIndicators(false);
                 }
 
-                item.model = preliminaryPetInfo;
-                holder.update(item.id, preliminaryPetInfo);
+                item.model = petInfo;
+                holder.update(item.id, petInfo);
             };
 
             // Get the observable - request new data if plausibly stale. (e.g., not a select-notification)
-            LiveData<PreliminaryPetInfo> observable =
-                    viewModel.getPreliminaryInfoObservable(item.id, shouldRefresh);
+            LiveData<Pet> observable =
+                    viewModel.getPetObservable(item.id, shouldRefresh);
+
 
             // set up the view holder to expect the incoming change:
             if (holder.petInfoObserver != null) {
@@ -331,7 +329,7 @@ public class PetFragment extends Fragment {
             super.onViewRecycled(holder);
 
             if (holder.petInfoObserver != null) {
-                viewModel.getPreliminaryInfoObservable(holder.petId).removeObserver(holder.petInfoObserver);
+                viewModel.getPetObservable(holder.petId).removeObserver(holder.petInfoObserver);
                 holder.petInfoObserver = null;
             }
             if (holder.uiUpdateObserver != null) {

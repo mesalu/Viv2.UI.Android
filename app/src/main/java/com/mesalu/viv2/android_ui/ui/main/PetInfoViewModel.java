@@ -21,9 +21,6 @@ public class PetInfoViewModel extends CommonSignalAwareViewModel {
 
     private final MutableLiveData<List<Species>> species;
 
-    // contains "preliminary info" objects of tracked pets.
-    private final Map<Integer, MutableLiveData<PreliminaryPetInfo>> preliminaryInfo;
-
     private final PetInfoRepository repository;
 
     public PetInfoViewModel() {
@@ -33,7 +30,6 @@ public class PetInfoViewModel extends CommonSignalAwareViewModel {
         pets = new HybridCollectionLiveData<>(Pet::getId);
         species = new MutableLiveData<>();
         petIds = new MutableLiveData<>();
-        preliminaryInfo = new HashMap<>();
     }
 
     /**
@@ -67,51 +63,14 @@ public class PetInfoViewModel extends CommonSignalAwareViewModel {
     }
 
     /**
-     * Gets an observable live data instance that will receive updates for pets of matching id
-     * setting `refresh` will request the data access layer refresh the data. The access layer
-     * may or may not then request fresh information from the backend API.
-     *
-     * @param id pet id.
-     * @param refresh should new data be requested?
-     * @return a LiveData instance that will receive updates for the requested pet.
-     */
-    public LiveData<PreliminaryPetInfo> getPreliminaryInfoObservable(int id, boolean refresh) {
-        if (!preliminaryInfo.containsKey(id)) {
-            preliminaryInfo.put(id, new MutableLiveData<>());
-        }
-
-        MutableLiveData<PreliminaryPetInfo> observable = preliminaryInfo.get(id);
-        if (refresh)
-            repository.getPreliminaryPetInfo(id, this::extractAndUpdatePreliminaryPet);
-
-        return observable;
-    }
-
-    /**
-     * As getPreliminaryInfoObservable(id, false)
-     */
-    public LiveData<PreliminaryPetInfo> getPreliminaryInfoObservable(int id) {
-        return getPreliminaryInfoObservable(id, false);
-    }
-
-    /**
-     * Requests that the underlying data access layer refresh the PreliminaryPetInfo field
-     * for the specified pet id.
-     * @param petId
-     */
-    public void refreshPreliminaryInfoFor(int petId) {
-        repository.getPreliminaryPetInfo(petId, this::extractAndUpdatePreliminaryPet);
-    }
-
-    /**
-     * Ensures the pet id list is up to date and then requests a preliminary pet info update
+     * Ensures the pet id list is up to date and then requests extended information
      * for each id within.
      */
-    public void refreshAllPreliminaryPetInfo() {
+    public void refreshAllPetInfo() {
         repository.getPetIdList(l -> {
             petIds.setValue(l);
             for (int petId : l) {
-                refreshPreliminaryInfoFor(petId);
+                updatePetById(petId);
             }
         });
     }
@@ -163,17 +122,5 @@ public class PetInfoViewModel extends CommonSignalAwareViewModel {
 
     private void fetchSpeciesList() {
         PetInfoRepository.getInstance().getSpeciesInfo(s -> species.setValue(s));
-    }
-
-    private void extractAndUpdatePreliminaryPet(PreliminaryPetInfo preliminaryPetInfo) {
-        // preliminaryPetInfo.getPet() will contain the same info as would
-        // land in the pet list anyways, so we'll treat it the same.
-        pets.update(preliminaryPetInfo.getPet());
-
-        int id = preliminaryPetInfo.getPet().getId();
-        if (!preliminaryInfo.containsKey(id))
-            preliminaryInfo.put(id, new MutableLiveData<>());
-
-        preliminaryInfo.get(id).setValue(preliminaryPetInfo);
     }
 }

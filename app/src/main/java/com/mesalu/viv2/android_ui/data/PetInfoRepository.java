@@ -38,21 +38,6 @@ public class PetInfoRepository {
         accessClient.getPetIdList(callback);
     }
 
-    /**
-     * Dispatches a request for the preliminary 'at-a-glance' ifno about the specified pet.
-     * If all goes well, callback.accept will be called with the data.
-     *
-     * The data may be serviced by internal cache, from a fresh request, or both (internal cache
-     * while awaiting a fresh copy), so the callback should be written to be tolerant of multiple
-     * invocations.
-     *
-     * @param petId the id of the pet to get info for.
-     * @param callback a consumer to utilize when data is available.
-     */
-    public void getPreliminaryPetInfo(int petId, @NonNull Consumer<PreliminaryPetInfo> callback) {
-        accessClient.getPreliminaryPetInfo(petId, callback);
-    }
-
     public void getPetInfo(int petId, @NonNull Consumer<Pet> callback) {
         // TODO: check if we've made a recent request for preliminary pet info on the same
         //       ID (which should be likely) - if so, just extract the pet member from that.

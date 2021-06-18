@@ -7,6 +7,7 @@ public class Pet {
     String name;
     String morph;
     Species species;
+    EnvDataSample latestSample;
 
     public int getId() {
         return id;
@@ -38,5 +39,13 @@ public class Pet {
 
     public void setSpecies(@Nullable Species species) {
         this.species = species;
+    }
+
+    public EnvDataSample getLatestSample() {
+        return latestSample;
+    }
+
+    public void setLatestSample(EnvDataSample latestSample) {
+        this.latestSample = latestSample;
     }
 }

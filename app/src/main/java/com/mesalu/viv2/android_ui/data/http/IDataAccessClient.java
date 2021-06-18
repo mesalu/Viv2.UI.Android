@@ -22,7 +22,6 @@ import java.util.function.Consumer;
 public interface IDataAccessClient {
     void getPetIdList(Consumer<List<Integer>> callback);
     void getPet(int id, Consumer<Pet> callback);
-    void getPreliminaryPetInfo(int id, Consumer<PreliminaryPetInfo> callback);
     void getSamplesInDateRange(int petId, Instant a, Instant b, Consumer<Result<List<EnvDataSample>>> callback);
     void getSamplesInDateRange(Pet pet, Instant a, Instant b, Consumer<Result<List<EnvDataSample>>> callback);
     void getSpeciesList(Consumer<List<Species>> callback);

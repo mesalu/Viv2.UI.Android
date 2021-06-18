@@ -2,6 +2,7 @@ package com.mesalu.viv2.android_ui.data.model;
 
 import com.google.gson.annotations.SerializedName;
 
+@Deprecated
 public class PreliminaryPetInfo {
     private Pet pet;
 

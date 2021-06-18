@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.mesalu.viv2.android_ui.R;
 import com.mesalu.viv2.android_ui.data.ProfileImageRepository;
 import com.mesalu.viv2.android_ui.data.model.EnvDataSample;
-import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
+import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.ui.events.SimpleEvent;
 import com.mesalu.viv2.android_ui.ui.widgets.LedValueView;
 
@@ -32,7 +32,7 @@ class PetCardViewHolder extends RecyclerView.ViewHolder {
     ViewActionListener actionListener;
 
     Observer<SimpleEvent> uiUpdateObserver;
-    Observer<PreliminaryPetInfo> petInfoObserver;
+    Observer<Pet> petInfoObserver;
 
     ZonedDateTime lastSampleTime;
 
@@ -55,26 +55,26 @@ class PetCardViewHolder extends RecyclerView.ViewHolder {
                 .setVisibility((show) ? View.VISIBLE : View.GONE);
     }
 
-    public synchronized void setPendingUpdate(int id, Observer<PreliminaryPetInfo> petInfoObserver) {
+    public synchronized void setPendingUpdate(int id, Observer<Pet> petInfoObserver) {
         this.petInfoObserver = petInfoObserver;
         petId = id;
     }
 
-    public void update(int id, PreliminaryPetInfo data) {
+    public void update(int id, Pet data) {
         if (id != petId) return; // got re-bound before callback finished
 
         // update view with content.
         TextView textView = itemView.findViewById(R.id.name_view);
-        textView.setText(data.getPet().getName());
+        textView.setText(data.getName());
 
         textView = itemView.findViewById(R.id.species_name_view);
-        textView.setText(data.getPet().getSpecies().getName());
+        textView.setText(data.getSpecies().getName());
 
         textView = itemView.findViewById(R.id.morph_view);
-        textView.setText(data.getPet().getMorph());
+        textView.setText(data.getMorph());
 
-        if (data.getSample() == null) fillNullSample(); // done here.
-        else fillSample(data.getSample());
+        if (data.getLatestSample() == null) fillNullSample(); // done here.
+        else fillSample(data.getLatestSample());
     }
 
     protected void fillSample(EnvDataSample sample) {

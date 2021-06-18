@@ -86,17 +86,6 @@ public class DataAccessClient implements IDataAccessClient {
     }
 
     @Override
-    public void getPreliminaryPetInfo(int id, Consumer<PreliminaryPetInfo> callback) {
-        Call<PreliminaryPetInfo> call = _clientService
-                .getPreliminaryInfo(id);
-
-        new Retrier<PreliminaryPetInfo>()
-                .withCall(call)
-                .withCallback(_callbackFromConsumer(callback))
-                .proceed();
-    }
-
-    @Override
     public void getSpeciesList(Consumer<List<Species>> callback) {
         new Retrier<List<Species>>()
                 .withCall(_clientService.getSpeciesInfo())
