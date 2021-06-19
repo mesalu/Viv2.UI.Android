@@ -25,17 +25,43 @@ public final class SampleRepository {
 
     private static final class SamplePage {
         List<EnvDataSample> samples;
-        Instant pageStart;
+        final Instant pageStart;
+        final Instant pageEnd;
         Instant firstSampleTime;
+        Instant acquiredAt;
 
-        public SamplePage(@NonNull List<EnvDataSample> samples, Instant pageStart) {
+        public SamplePage(@NonNull List<EnvDataSample> samples, Instant pageStart, Instant acquiredAt) {
             this.samples = samples;
             this.pageStart = pageStart;
+            pageEnd = pageStart.plus(pageLengthSeconds, ChronoUnit.SECONDS);
+            this.acquiredAt = acquiredAt;
 
             // NOTE: ideally the discovered sample should be the first sample of the batch.
             samples.stream()
                     .min(Comparator.comparingLong(sample -> sample.getCaptureTime().toEpochSecond()))
                     .ifPresent(envDataSample -> firstSampleTime = envDataSample.getCaptureTime().toInstant());
+        }
+
+        /**
+         * Indicates if the contents of this page can still be considered complete and representative
+         * of the time range this page contains.
+         * @return true if the page is still valid and usable.
+         */
+        public boolean isValid() {
+            /* There are essentially 2 conditions that make a page invalid:
+             * - when it was acquired at is before the end of the page's range.
+             * - it was acquired more than 30 seconds ago.
+             * The former indicates that the page was acquired when it was 'live', e.g. the instant
+             * it was acquired is bounded by the page's start and end times. The latter is a caching
+             * timeout.
+             */
+            if (acquiredAt.isBefore(pageEnd)
+                    && acquiredAt.plus(30, ChronoUnit.SECONDS).isBefore(Instant.now())) {
+                Log.d("SampleRepository", "Cached page no longer valid - reacquiring");
+                return false;
+            }
+
+            return true;
         }
 
         /**
@@ -96,14 +122,9 @@ public final class SampleRepository {
 
             // run through each page within & add to pending state.
             for (Instant cursor = startPage; cursor.isBefore(endPage) || cursor.equals(endPage); cursor = cursor.plusSeconds(pageLengthSeconds)) {
-                boolean havePage = pageMap.containsKey(cursor);
+                boolean havePage = pageMap.containsKey(cursor) && pageMap.get(cursor).isValid();
                 pendingMap.put(cursor, havePage);
             }
-
-            // Stop gap for making sure we don't 'block' new data - to be replaced with proper
-            // caching.
-            // TODO: replace with proper 'live page' caching.
-            pendingMap.put(endPage, false);
         }
 
         void recvPage(SamplePage page) {
@@ -223,11 +244,12 @@ public final class SampleRepository {
             }
             else {
                 // fetch page from API
+                Instant issuedAt = Instant.now();
                 getClient().getSamplesInDateRange(petId, pageStart, pageEnd, result -> {
                     if (result instanceof Result.Success && ((Result.Success<List<EnvDataSample>>) result).getData() != null) {
                         // bundle the sample list into a SamplePage container
                         List<EnvDataSample> sampleList = ((Result.Success<List<EnvDataSample>>) result).getData();
-                        SamplePage page = new SamplePage(sampleList, pageStart);
+                        SamplePage page = new SamplePage(sampleList, pageStart, issuedAt);
 
                         // TODO: write through to db.
 

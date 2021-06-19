@@ -1,5 +1,6 @@
 package com.mesalu.viv2.android_ui.ui.charting;
 
+import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -7,6 +8,7 @@ import androidx.annotation.ColorInt;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
@@ -20,12 +22,16 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.ToggleButton;
 
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.mesalu.viv2.android_ui.R;
 
@@ -52,6 +58,7 @@ public class ChartFragment extends Fragment {
     private RadioGroup radioGroup;
     private final LineDataSet[] lineDataSets;
     private final boolean[] dataPending;
+    private float timeScaleDivisor;
 
     // TODO: persist these through life cycle changes.
     private ChartTarget currentTarget;
@@ -136,18 +143,19 @@ public class ChartFragment extends Fragment {
 
     private void onLineDataUpdate(SampleZone zone, List<SampleViewModel.DataPoint> data) {
         Log.d("ChartFragment", "Got update for single-line data in Zone: "
-                + zone.toString() + " " + data.size() + " items in line");
+                + zone.toString() + " " + data.size() + " items in line. (divisor = "
+                + timeScaleDivisor + ")");
 
         // Apply a few transformations:
         //  - Change to representation the chart can consume (DataPoint -> Entry)
         //  - adjust x-axis values to be relative to now, so they show as some amount of time ago
         //      rather than obtuse unix time values.
         Instant now = Instant.now();
-        Function<Instant, Long> xMapper = (inputTime) ->
-            Duration.between(now, inputTime).getSeconds();
+        Function<Instant, Long> deltaSeconds = (inputTime) ->
+                Duration.between(now, inputTime).getSeconds();
 
         List<Entry> entries = data.stream()
-                .map(dataPoint -> new Entry(xMapper.apply(dataPoint.first), dataPoint.second.floatValue()))
+                .map(dataPoint -> new Entry(deltaSeconds.apply(dataPoint.first), dataPoint.second.floatValue()))
                 .collect(Collectors.toList());
 
         processEntries(zone, entries);
@@ -312,6 +320,7 @@ public class ChartFragment extends Fragment {
 
         RadioButton defaultButton = radioGroup.findViewById(R.id.date_range_hour);
         defaultButton.setChecked(true);
+        timeScaleDivisor = getTimeDivisorFor(R.id.date_range_hour);
 
         for (SampleZone zone : SampleZone.values()) {
             ((CheckBox) baseView.findViewById(toggleButtonForZone(zone))).setChecked(true);
@@ -352,33 +361,17 @@ public class ChartFragment extends Fragment {
         }
 
         radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            // If we're moving from a broader time range to a narrower one, we can short cut the
-            // lengthy data access & refresh and just remove entries that are leaving scope
-            Instant newStartPoint = rangeStart(checkedId);
-            if (newStartPoint.isAfter(dataStart)) {
-                long newSpan = Duration.between(Instant.now(), newStartPoint).getSeconds();
+            // set the new divisor - used when transforming data:
+            timeScaleDivisor = getTimeDivisorFor(checkedId);
 
-                for (SampleZone zone: SampleZone.values()) {
-                    int ord = zone.ordinal();
-                    if (lineDataSets[ord] == null) continue;
-                    // TODO: throw this into a background task - it could be expensive.
-                    processEntries(zone,
-                            lineDataSets[ord].getValues()
-                                    .stream()
-                                    .filter(entry -> entry.getX() > newSpan)
-                                    .collect(Collectors.toList()));
-                }
-                dataStart = newStartPoint; // need to set here since we're not following the typical path
-                commitToChart(collectShownLines());
-                lineChart.notifyDataSetChanged();
-            }
-            else {
-                // We could cache the different levels if we wanted, to avoid re-querying, but then
-                // we'd have even more memory overhead & would have to deal with cache invalidation
-                // in an ephemeral component. So I think it's fine to just re-issue a request to the
-                // underlying components.
-                notifyModel(currentTarget, newStartPoint);
-            }
+            /* If we're moving from a broader time range to a narrower one, we can short cut the
+             * lengthy data access & refresh and just remove entries that are leaving scope.
+             *
+             * However, this creates some problems where we may not retrieve new samples (which will
+             * be accentuated by the narrower time scale).
+            */
+            Instant newStartPoint = rangeStart(checkedId);
+            notifyModel(currentTarget, newStartPoint);
         });
     }
 
@@ -388,11 +381,48 @@ public class ChartFragment extends Fragment {
      * @param data data to be set as the chart's data
      */
     private void commitToChart(LineData data) {
-        lineChart.getXAxis().setAxisMaximum(0f);
-        long minimum = Duration.between(Instant.now(), dataStart).getSeconds();
-        Log.d("ChartFragment", "Adjusting x min to " + minimum);
-        lineChart.getXAxis().setAxisMinimum(minimum);
+        XAxis xAxis = lineChart.getXAxis();
+        xAxis.setAxisMaximum(0f);
+        xAxis.setAxisMinimum(Duration.between(Instant.now(), dataStart).getSeconds());
+        xAxis.setValueFormatter(new ValueFormatter() {
+            @SuppressLint("DefaultLocale")
+            @Override
+            public String getFormattedValue(float value) {
+                return String.format("%.0f", Math.abs(value / timeScaleDivisor));
+            }
+        });
+
+        // Adjust the x axis title:
+        TextView xAxisTitle = requireView().findViewById(R.id.chart_x_axis_title);
+        String unitString = requireContext().getString(getTimeUnitFor(radioGroup.getCheckedRadioButtonId()));
+        xAxisTitle.setText(requireContext().getString(R.string.x_axis_title_format, unitString));
+
         lineChart.setData(data);
         lineChart.invalidate();
+    }
+
+    /**
+     * Gets a value with which it is most appropriate to subdivide a seconds value.
+     * E.g., if the current date range spans multiple days, then the number of seconds
+     * in a day will be returned.
+     * @return
+     */
+    private float getTimeDivisorFor(int radioId) {
+        if (radioId == R.id.date_range_hour) return 60f;
+        else if (radioId == R.id.date_range_12hour || radioId == R.id.date_range_day)
+            return 3600f;
+        else if (radioId == R.id.date_range_week || radioId == R.id.date_range_month)
+            return 3600f * 24;
+        else throw new IllegalStateException("Unsure which date range is selected");
+    }
+
+    @StringRes
+    private int getTimeUnitFor(int radioId) {
+        if (radioId == R.id.date_range_hour) return R.string.x_axis_unit_minutes;
+        else if (radioId == R.id.date_range_12hour || radioId == R.id.date_range_day)
+            return R.string.x_axis_unit_hours;
+        else if (radioId == R.id.date_range_week || radioId == R.id.date_range_month)
+            return R.string.x_axis_unit_days;
+        else throw new IllegalStateException("Unsure which date range is selected");
     }
 }

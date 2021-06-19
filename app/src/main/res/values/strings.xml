@@ -86,4 +86,10 @@
     <string name="sensor_label_mie_short">MIE</string>
     <string name="sensor_label_mie_long">Mid Inside Enclosure</string>
 
+    <string name="y_axis_temp_title">°C</string>
+    <string name="x_axis_title_format">Age (%1$s)</string>
+    <string name="x_axis_unit_minutes">m</string>
+    <string name="x_axis_unit_hours">h</string>
+    <string name="x_axis_unit_days">d</string>
+
 </resources>

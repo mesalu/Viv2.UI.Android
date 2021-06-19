@@ -6,10 +6,10 @@
         <item name="colorSecondary">@color/lt_secondary</item>
         <item name="colorOnSecondary">@color/lt_secondaryText</item>
         <item name="colorOnSurface">@color/lt_secondaryDark</item>
+        <item name="colorOnPrimarySurface">@color/lt_secondaryText</item>
         <item name="colorAccent">@color/lt_secondaryLight</item>
         <item name="colorProfileTint">@android:color/white</item>
         <item name="android:navigationBarColor">@color/lt_primaryDark</item>
-
 
         <!-- Theme attributes for the LED widget -->
         <item name="colorLedFillCold">@android:color/holo_blue_bright</item>

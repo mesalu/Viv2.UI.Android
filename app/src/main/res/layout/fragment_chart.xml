@@ -60,19 +60,34 @@
 
     </RadioGroup>
 
-    <!-- the chart is aligning / sizing weirdly in emulator (looks fine in
-            tools though. :shrug:
-            To combat this, let's try wrapping it in another layout to see
-            if its just not playing nice with constraints -->
+    <TextView
+        android:id="@+id/chart_x_axis_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/radio_group"
+        app:layout_constraintStart_toStartOf="@id/chart"
+        app:layout_constraintEnd_toEndOf="@id/chart"
+        tools:text="X-Axis-Title" />
+
+    <TextView
+        android:id="@+id/chart_y_axis_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/y_axis_temp_title"
+        android:rotation="270"
+        android:layout_marginStart="5dp"
+        app:layout_constraintBottom_toBottomOf="@id/chart"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/chart" />
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/chart"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="5dp"
-        app:layout_constraintDimensionRatio="w,9:16"
-        app:layout_constraintTop_toBottomOf="@id/radio_group"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintDimensionRatio="16:9"
+        app:layout_constraintTop_toBottomOf="@id/chart_x_axis_title"
+        app:layout_constraintStart_toEndOf="@id/chart_y_axis_title"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <CheckBox
