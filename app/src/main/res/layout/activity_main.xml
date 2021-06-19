@@ -11,11 +11,11 @@
         android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="?actionBarSize">
+        android:layout_marginBottom="?actionBarSize" >
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="match_parent">
 
             <fragment
                 android:id="@+id/nav_host_fragment"
@@ -30,7 +30,7 @@
             <androidx.fragment.app.FragmentContainerView
                 android:id="@+id/chart_fragment_container"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
+                android:layout_height="wrap_content"
                 android:visibility="gone"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/nav_host_fragment"
