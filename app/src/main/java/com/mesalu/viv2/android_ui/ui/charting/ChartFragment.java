@@ -19,32 +19,26 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.ToggleButton;
 
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
-import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.mesalu.viv2.android_ui.R;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * A fragment that holds a chart view and related controls. The chart displays lines generated
@@ -211,13 +205,13 @@ public class ChartFragment extends Fragment {
 
     private Instant rangeStart(@IdRes int activeRadioId) {
         int unitCount = 0;
-
-        if (activeRadioId == R.id.date_range_hour) unitCount = 1;
-        else if (activeRadioId == R.id.date_range_12hour) unitCount = 12;
-        else if (activeRadioId == R.id.date_range_day) unitCount = 24;
-        else if (activeRadioId == R.id.date_range_week) unitCount = 24 * 7;
-        else if (activeRadioId == R.id.date_range_month) unitCount = 24 * 30;
-        return Instant.now().minus(unitCount, ChronoUnit.HOURS);
+        if (activeRadioId == R.id.rb_time_range_15_minute) unitCount = 15;
+        else if (activeRadioId == R.id.rb_time_range_30_minute) unitCount = 30;
+        else if (activeRadioId == R.id.rb_time_range_hour) unitCount = 60;
+        else if (activeRadioId == R.id.rb_time_range_12_hour) unitCount = 60 * 12;
+        else if (activeRadioId == R.id.rb_time_range_24_hour) unitCount = 60 * 24;
+        else if (activeRadioId == R.id.rb_time_range_7_day) unitCount = 60 * 24 * 7;
+        return Instant.now().minus(unitCount, ChronoUnit.MINUTES);
     }
 
     private boolean lineShouldBeShown(SampleZone zone) {
@@ -318,9 +312,9 @@ public class ChartFragment extends Fragment {
     private void setDefaultState(View baseView) {
         baseView = (baseView == null) ? requireView() : baseView;
 
-        RadioButton defaultButton = radioGroup.findViewById(R.id.date_range_hour);
+        RadioButton defaultButton = radioGroup.findViewById(R.id.rb_time_range_15_minute);
         defaultButton.setChecked(true);
-        timeScaleDivisor = getTimeDivisorFor(R.id.date_range_hour);
+        timeScaleDivisor = getTimeDivisorFor(R.id.rb_time_range_hour);
 
         for (SampleZone zone : SampleZone.values()) {
             ((CheckBox) baseView.findViewById(toggleButtonForZone(zone))).setChecked(true);
@@ -408,20 +402,24 @@ public class ChartFragment extends Fragment {
      * @return
      */
     private float getTimeDivisorFor(int radioId) {
-        if (radioId == R.id.date_range_hour) return 60f;
-        else if (radioId == R.id.date_range_12hour || radioId == R.id.date_range_day)
+        if (radioId == R.id.rb_time_range_hour
+                || radioId == R.id.rb_time_range_30_minute
+                || radioId == R.id.rb_time_range_15_minute) return 60f;
+        else if (radioId == R.id.rb_time_range_12_hour || radioId == R.id.rb_time_range_24_hour)
             return 3600f;
-        else if (radioId == R.id.date_range_week || radioId == R.id.date_range_month)
+        else if (radioId == R.id.rb_time_range_7_day)
             return 3600f * 24;
         else throw new IllegalStateException("Unsure which date range is selected");
     }
 
     @StringRes
     private int getTimeUnitFor(int radioId) {
-        if (radioId == R.id.date_range_hour) return R.string.x_axis_unit_minutes;
-        else if (radioId == R.id.date_range_12hour || radioId == R.id.date_range_day)
+        if (radioId == R.id.rb_time_range_hour
+                || radioId == R.id.rb_time_range_30_minute
+                || radioId == R.id.rb_time_range_15_minute) return R.string.x_axis_unit_minutes;
+        else if (radioId == R.id.rb_time_range_12_hour || radioId == R.id.rb_time_range_24_hour)
             return R.string.x_axis_unit_hours;
-        else if (radioId == R.id.date_range_week || radioId == R.id.date_range_month)
+        else if (radioId == R.id.rb_time_range_7_day)
             return R.string.x_axis_unit_days;
         else throw new IllegalStateException("Unsure which date range is selected");
     }

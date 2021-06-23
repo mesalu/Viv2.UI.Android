@@ -29,34 +29,40 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <RadioButton
-            android:id="@+id/date_range_month"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/time_range_month" />
-
-        <RadioButton
-            android:id="@+id/date_range_week"
+            android:id="@+id/rb_time_range_7_day"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/time_range_week" />
 
         <RadioButton
-            android:id="@+id/date_range_day"
+            android:id="@+id/rb_time_range_24_hour"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/time_range_day" />
 
         <RadioButton
-            android:id="@+id/date_range_12hour"
+            android:id="@+id/rb_time_range_12_hour"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/time_range_12_hour" />
 
         <RadioButton
-            android:id="@+id/date_range_hour"
+            android:id="@+id/rb_time_range_hour"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/time_range_1_hour" />
+
+        <RadioButton
+            android:id="@+id/rb_time_range_30_minute"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/time_range_30_min" />
+
+        <RadioButton
+            android:id="@+id/rb_time_range_15_minute"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/time_range_15_min" />
 
     </RadioGroup>
 

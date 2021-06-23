@@ -13,6 +13,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -21,8 +23,6 @@ import java.util.stream.Collectors;
  * Handles the acquisition, caching, and delivering of EnvDataSamples.
  */
 public final class SampleRepository {
-    // To reduce type-name length.
-
     private static final class SamplePage {
         List<EnvDataSample> samples;
         final Instant pageStart;
@@ -88,6 +88,7 @@ public final class SampleRepository {
         }
     }
 
+    // Reduces length of type names
     private static final class SampleMap extends HashMap<Instant, SamplePage> {}
 
     /**
@@ -248,11 +249,20 @@ public final class SampleRepository {
                 getClient().getSamplesInDateRange(petId, pageStart, pageEnd, result -> {
                     if (result instanceof Result.Success && ((Result.Success<List<EnvDataSample>>) result).getData() != null) {
                         // bundle the sample list into a SamplePage container
+
                         List<EnvDataSample> sampleList = ((Result.Success<List<EnvDataSample>>) result).getData();
-                        SamplePage page = new SamplePage(sampleList, pageStart, issuedAt);
 
-                        // TODO: write through to db.
+                        // Sort the samples by capture time - avoid doing it in place as we
+                        // don't control the mutability of the list we're given.
+                        // TODO: thread this out, pages aren't excessively big, but we
+                        //      can't risk sorting all of them on the main thread.
+                        List<EnvDataSample> sorted = sampleList.stream()
+                                .sorted((a, b) -> a.getCaptureTime().compareTo(b.getCaptureTime()))
+                                .collect(Collectors.toList());
 
+                        SamplePage page = new SamplePage(sorted, pageStart, issuedAt);
+
+                        // TODO: write through to db (again, in a background thread).
                         callback.accept(page);
                     }
                     else {

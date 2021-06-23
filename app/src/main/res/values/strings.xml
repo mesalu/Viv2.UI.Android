@@ -68,11 +68,14 @@
 
 
     <!-- Time range labels for chart fragment radio buttons -->
+    <!-- TODO: convert to format string & use with unit-strings. -->
     <string name="time_range_month">30D</string>
     <string name="time_range_week">7D</string>
     <string name="time_range_day">24H</string>
     <string name="time_range_12_hour">12H</string>
     <string name="time_range_1_hour">1H</string>
+    <string name="time_range_30_min">30m</string>
+    <string name="time_range_15_min">15m</string>
 
     <!-- New labels for sensor locations -->
     <string name="sensor_label_hsie_short">HSIE</string>
