@@ -128,10 +128,10 @@ public class ChartFragment extends Fragment {
         for (SampleZone zone : SampleZone.values())
             dataPending[zone.ordinal()] = true;
 
-        if (target.targetType == ChartTarget.TargetType.Pet)
+        if (target.targetType == ChartTarget.TargetType.PET)
             viewModel.setDataTarget((Integer) target.id, dataRangeStart, Instant.now());
 
-        else if (target.targetType == ChartTarget.TargetType.Environment)
+        else if (target.targetType == ChartTarget.TargetType.ENVIRONMENT)
             viewModel.setDataTarget((UUID) target.id, dataRangeStart, Instant.now());
     }
 

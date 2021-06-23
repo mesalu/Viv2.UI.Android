@@ -26,6 +26,7 @@ import com.mesalu.viv2.android_ui.R;
 import com.mesalu.viv2.android_ui.data.LoginRepository;
 import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.ui.charting.ChartTarget;
+import com.mesalu.viv2.android_ui.ui.events.ChartTargetEvent;
 import com.mesalu.viv2.android_ui.ui.main.data_entry.PetEntryDialogFragment;
 
 import java.util.HashSet;
@@ -36,6 +37,7 @@ public class PetFragment extends Fragment {
     static int IMAGE_CAPTURE_REQUEST_CODE = 1;
 
     private PetInfoViewModel viewModel;
+    private IChartTargetHandler chartTargetHandler;
     private Adapter recyclerAdapter;
     private ActionMode.Callback actionModeCallback;
     private ActionMode activeActionMode;
@@ -71,8 +73,8 @@ public class PetFragment extends Fragment {
                 }
                 else if (item.getItemId() == R.id.action_chart) {
                     // Signal the main activity that it should show & configure the chart display
-                    viewModel.setChartTargetAs(new ChartTarget(recyclerAdapter.getSelectedPetId(),
-                            ChartTarget.TargetType.Pet));
+                    chartTargetHandler.signalChartTarget(new ChartTarget(recyclerAdapter.getSelectedPetId(),
+                            ChartTarget.TargetType.PET));
                 }
                 else return false; // did not handle the item.
 
@@ -88,7 +90,7 @@ public class PetFragment extends Fragment {
                 // those callbacks execute on.
                 if (recyclerAdapter != null) recyclerAdapter.clearSelectedItem();
 
-                viewModel.setChartTargetAs(null); // Declare we're done with the chart
+                chartTargetHandler.signalChartTarget(null, ChartTargetEvent.ViewModifier.HIDE); // Declare we're done with the chart
             }
         };
 
@@ -129,7 +131,9 @@ public class PetFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        viewModel = new ViewModelProvider(requireActivity()).get(PetInfoViewModel.class);
+        ViewModelProvider provider = new ViewModelProvider(requireActivity());
+        viewModel = provider.get(PetInfoViewModel.class);
+        chartTargetHandler = provider.get(MainActivityViewModel.class); // TODO: better dependency management
 
         final ProgressBar progressBar = getView().findViewById(R.id.loading);
         progressBar.setVisibility(View.VISIBLE);
@@ -266,8 +270,8 @@ public class PetFragment extends Fragment {
                     // Send a message to retarget the chart - if its shown. (e.g., don't show it
                     // if the user hasn't explicitly opened it.)
                     ChartTarget newTarget = new ChartTarget(petItems.get(position).id,
-                            ChartTarget.TargetType.Pet);
-                    viewModel.setChartTargetAs(newTarget, false);
+                            ChartTarget.TargetType.PET);
+                    chartTargetHandler.signalChartTarget(newTarget, ChartTargetEvent.ViewModifier.NO_MODIFIER);
                 }
             });
         }

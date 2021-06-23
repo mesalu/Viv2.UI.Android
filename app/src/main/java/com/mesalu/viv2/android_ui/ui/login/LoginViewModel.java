@@ -48,7 +48,6 @@ public class LoginViewModel extends ViewModel {
     }
 
     public void login(String username, String password) {
-        // Results handled synchronously via a convoluted daisy chain of main-thread callbacks.
         loginRepository.login(username, password);
     }
 

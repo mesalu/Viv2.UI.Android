@@ -20,6 +20,7 @@ import com.mesalu.viv2.android_ui.R;
 import com.mesalu.viv2.android_ui.data.model.Environment;
 import com.mesalu.viv2.android_ui.data.model.NodeController;
 import com.mesalu.viv2.android_ui.data.model.Pet;
+import com.mesalu.viv2.android_ui.ui.events.ChartTargetEvent;
 import com.mesalu.viv2.android_ui.ui.main.data_entry.PetMigrationDialogFragment;
 import com.mesalu.viv2.android_ui.ui.widgets.ControllerCard;
 
@@ -30,6 +31,7 @@ public class EnvironmentFragment extends Fragment {
 
     private EnvironmentInfoViewModel envInfoViewModel;
     private PetInfoViewModel petInfoViewModel;
+    private IChartTargetHandler chartTargetHandler;
 
     public static EnvironmentFragment newInstance() {
         return new EnvironmentFragment();
@@ -40,7 +42,7 @@ public class EnvironmentFragment extends Fragment {
         super.onResume();
         if (envInfoViewModel != null)
             // hide the chart if shown. (behavior not yet implemented.)
-            envInfoViewModel.setChartTargetAs(null);
+            chartTargetHandler.signalChartTarget(null, ChartTargetEvent.ViewModifier.HIDE);
     }
 
     @Override
@@ -52,8 +54,10 @@ public class EnvironmentFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        envInfoViewModel = new ViewModelProvider(requireActivity()).get(EnvironmentInfoViewModel.class);
-        petInfoViewModel = new ViewModelProvider(requireActivity()).get(PetInfoViewModel.class);
+        ViewModelProvider provider = new ViewModelProvider(requireActivity());
+        envInfoViewModel = provider.get(EnvironmentInfoViewModel.class);
+        petInfoViewModel = provider.get(PetInfoViewModel.class);
+        chartTargetHandler = provider.get(MainActivityViewModel.class); // TODO: better dependency management
 
         final RecyclerView recycler = requireView().findViewById(R.id.recycler_view);
         final ProgressBar progressBar = requireView().findViewById(R.id.loading);

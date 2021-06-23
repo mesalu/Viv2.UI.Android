@@ -43,6 +43,8 @@ import java.util.concurrent.TimeUnit;
  * as signing out, or entering a pet-specific management activity.
  */
 public class MainActivity extends AppCompatActivity {
+    private static final int LOGIN_REQUEST_CODE = 1;
+
     // used to drive the silent refresh loop under the UI
     // anchored here in a UI-activity so that it
     // can be start/stopped in accordance to app activity.
@@ -52,12 +54,17 @@ public class MainActivity extends AppCompatActivity {
     //       So that will be a bug to be on the lookout for.
     private ScheduledExecutorService executorService;
 
-    private static final int LOGIN_REQUEST_CODE = 1;
+    private MainActivityViewModel stateViewModel;
+    private FloatingActionButton fab;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        stateViewModel = new ViewModelProvider(this).get(MainActivityViewModel.class);
+        stateViewModel.getChartTargetEvent().observe(this, this::onChartTargetEvent);
 
         // Auth token life cycle management:
         // whenever we get a new token set, schedule a refresh for
@@ -90,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(navView, navController);
 
-        FloatingActionButton fab = findViewById(R.id.fab);
+        fab = findViewById(R.id.fab);
         fab.setOnClickListener(v -> {
             CommonSignalAwareViewModel activeViewModel = getActiveFragmentViewModel();
             if (activeViewModel != null) activeViewModel.signalFab();
@@ -109,67 +116,6 @@ public class MainActivity extends AppCompatActivity {
             // TODO: need a callback for invoking setRefreshing at the best time.
             swipeRefreshLayout.setRefreshing(false);
         });
-
-        // setup call backs with view models for interacting with the chart fragment
-        Observer<ChartTargetEvent> showChartObserver = event -> {
-            ChartTarget target = event.consume();
-            Fragment fragment = getSupportFragmentManager()
-                    .findFragmentByTag(ChartFragment.MGR_TAG);
-
-            if (target == null && event.peek() != null) {
-                // a properly consumed event & not a fresh message to hide the chart.
-                return;
-            }
-
-            if (target != null) {
-                // This logic gets a bit trickier if we ever support multiple chart fragments in
-                // the manager at any given time (e.g. one per accessed data context) - as
-                // we'll need to work out which one is shown & transitioning between them. However,
-                // for now, its a pretty simple 4 state, 3 outcome scenario:
-                if (fragment == null && !event.shouldShowChart()) return;
-                else if (fragment == null) {
-                    // create a new fragment via a transaction, have the transaction handle
-                    // setting the chart target when the fragment is ready.
-                    getSupportFragmentManager().beginTransaction()
-                            .setReorderingAllowed(true)
-                            .add(R.id.chart_fragment_container, ChartFragment.class, null, ChartFragment.MGR_TAG)
-                            .runOnCommit(() -> {
-                                // get the fragment to load data.
-                                ChartFragment chartFragment = (ChartFragment) getSupportFragmentManager()
-                                        .findFragmentByTag(ChartFragment.MGR_TAG);
-
-                                if (chartFragment != null) chartFragment.resetToTarget(target);
-                                else Log.e("MainActivity", "onCommit Runnable not suitable for this use");
-
-                                findViewById(R.id.chart_fragment_container).setVisibility(View.VISIBLE);
-                                if (fab.isOrWillBeShown()) fab.hide();
-                            })
-                            .commit();
-                }
-                else {
-                    // we have the fragment - whether or now the chart needs to be shown is irrelevant
-                    ((ChartFragment) fragment).resetToTarget(target);
-                }
-            }
-            else {
-                // The event's content was null, e.g. "Hide the chart" / "Done with chart".
-                if (fragment != null)
-                    getSupportFragmentManager().beginTransaction()
-                            .setReorderingAllowed(true)
-                            .remove(fragment)
-                            .runOnCommit(() ->{
-                                findViewById(R.id.chart_fragment_container).setVisibility(View.GONE);
-                                if (fab.isOrWillBeHidden()) fab.show();
-                            })
-                            .commit();
-            }
-        };
-
-        ViewModelProvider viewModelProvider = new ViewModelProvider(this);
-        CommonSignalAwareViewModel viewModel = viewModelProvider.get(EnvironmentInfoViewModel.class);
-        viewModel.getChartTargetSignal().observe(this, showChartObserver);
-        viewModel = viewModelProvider.get(PetInfoViewModel.class);
-        viewModel.getChartTargetSignal().observe(this, showChartObserver);
     }
 
     @Override
@@ -361,6 +307,57 @@ public class MainActivity extends AppCompatActivity {
         }
         catch (Exception e) {
             Log.e("OA", "Error in dispatching timed update: ", e);
+        }
+    }
+
+    private void onChartTargetEvent(ChartTargetEvent event) {
+        ChartTarget target = event.consume();
+        Fragment fragment = getSupportFragmentManager()
+                .findFragmentByTag(ChartFragment.MGR_TAG);
+
+        // check if the event has already be consumed.
+        if (target == null && event.peek() != null) return;
+
+        switch (event.getViewModifier()) {
+            case SHOW:
+                // ensure the fragment exists
+                if (fragment == null)
+                    getSupportFragmentManager().beginTransaction()
+                            .setReorderingAllowed(true)
+                            .add(R.id.chart_fragment_container, ChartFragment.class, null, ChartFragment.MGR_TAG)
+                            .runOnCommit(() -> {
+                                // get the fragment to load data.
+                                ChartFragment chartFragment = (ChartFragment) getSupportFragmentManager()
+                                        .findFragmentByTag(ChartFragment.MGR_TAG);
+
+                                if (chartFragment != null) chartFragment.resetToTarget(target);
+                                else Log.e("MainActivity", "onCommit Runnable not suitable for this use");
+
+                                findViewById(R.id.chart_fragment_container).setVisibility(View.VISIBLE);
+                                if (fab.isOrWillBeShown()) fab.hide();
+                            })
+                            .commit();
+                // the target is set when the fragment is ready, so no need to roll through.
+                // (would be slick though.)
+                break;
+
+            case NO_MODIFIER:
+                // set the chart fragment (if present) to represent target
+                if (fragment != null) ((ChartFragment) fragment).resetToTarget(target);
+                break;
+
+            case HIDE:
+                // remove the chart fragment.
+                if (fragment != null)
+                    getSupportFragmentManager().beginTransaction()
+                            .setReorderingAllowed(true)
+                            .remove(fragment)
+                            .runOnCommit(() ->{
+                                findViewById(R.id.chart_fragment_container).setVisibility(View.GONE);
+                                if (fab.isOrWillBeHidden()) fab.show();
+                            })
+                            .commit();
+                else findViewById(R.id.chart_fragment_container).setVisibility(View.GONE);
         }
     }
 }

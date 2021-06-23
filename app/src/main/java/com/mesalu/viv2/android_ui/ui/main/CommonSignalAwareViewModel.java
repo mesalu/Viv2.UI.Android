@@ -25,15 +25,11 @@ public class CommonSignalAwareViewModel extends BaseViewModel {
     private final MutableLiveData<SimpleEvent> fabEvent;
     private final MutableLiveData<SimpleEvent> refreshEvent;
     private final MutableLiveData<SimpleEvent> uiUpdateEvent;
-    private final MutableLiveData<ChartTargetEvent> chartTargetEvent;
-
-
 
     protected CommonSignalAwareViewModel() {
         fabEvent = new MutableLiveData<>();
         refreshEvent = new MutableLiveData<>();
         uiUpdateEvent = new MutableLiveData<>();
-        chartTargetEvent = new MutableLiveData<>();
     }
 
     /**
@@ -66,29 +62,4 @@ public class CommonSignalAwareViewModel extends BaseViewModel {
     public LiveData<SimpleEvent> getUiUpdateSignal() {
         return uiUpdateEvent;
     }
-
-    public LiveData<ChartTargetEvent> getChartTargetSignal() {
-        return chartTargetEvent;
-    }
-
-    /**
-     * Signals the consumer of chart-targeting events that the chart should target the pet
-     * with the specified ID. If the chart is hidden it will only be shown if showIfHidden is true.
-     * @param target a chart target specifying the entity for which sample data should be displayed
-     * @param showIfHidden should the chart target be shown if hidden?
-     */
-    public void setChartTargetAs(ChartTarget target, boolean showIfHidden) {
-        chartTargetEvent.postValue(new ChartTargetEvent(target, showIfHidden));
-    }
-
-    /**
-     * As setChartTargetAs(ChartTarget, boolean) except that showIfHidden defaults to true.
-     * @param target a chart target specifying the entity for which sample data should be displayed
-     */
-    public void setChartTargetAs(ChartTarget target) {
-        chartTargetEvent.postValue(new ChartTargetEvent(target, true));
-    }
-
-
-
 }

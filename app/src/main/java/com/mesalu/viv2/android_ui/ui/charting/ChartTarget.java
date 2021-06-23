@@ -7,8 +7,9 @@ import java.util.UUID;
  */
 public class ChartTarget {
     public enum TargetType {
-        Pet, Environment
+        PET, ENVIRONMENT
     }
+
     Object id;
     TargetType targetType;
 
@@ -20,10 +21,10 @@ public class ChartTarget {
     }
 
     private void validateIdType() {
-        if (targetType == TargetType.Pet && !(id instanceof Integer))
+        if (targetType == TargetType.PET && !(id instanceof Integer))
             throw new IllegalStateException();
 
-        else if (targetType == TargetType.Environment && !(id instanceof UUID))
+        else if (targetType == TargetType.ENVIRONMENT && !(id instanceof UUID))
             throw new IllegalStateException();
     }
 }
