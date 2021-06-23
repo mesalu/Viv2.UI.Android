@@ -21,7 +21,7 @@ import java.util.UUID;
  * makes sense to have a base ViewModel that provides the groundwork for the real ViewModel
  * implementations.
  */
-public class CommonSignalAwareViewModel extends BaseViewModel {
+public abstract class CommonSignalAwareViewModel extends BaseViewModel {
     private final MutableLiveData<SimpleEvent> fabEvent;
     private final MutableLiveData<SimpleEvent> refreshEvent;
     private final MutableLiveData<SimpleEvent> uiUpdateEvent;

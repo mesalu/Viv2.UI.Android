@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,11 @@ public class HybridCollectionLiveData<TKey extends Comparable<TKey>, TModel> {
 
         mapOfObservables = new HashMap<>();
         listObservable = new MutableLiveData<>();
+    }
+
+    public void clear() {
+        mapOfObservables.clear();
+        listObservable.setValue(new ArrayList<>());
     }
 
     public LiveData<List<TModel>> getListObservable() {

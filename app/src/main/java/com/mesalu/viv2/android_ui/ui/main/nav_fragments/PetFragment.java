@@ -1,4 +1,4 @@
-package com.mesalu.viv2.android_ui.ui.main;
+package com.mesalu.viv2.android_ui.ui.main.nav_fragments;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
@@ -27,8 +27,11 @@ import com.mesalu.viv2.android_ui.data.LoginRepository;
 import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.ui.charting.ChartTarget;
 import com.mesalu.viv2.android_ui.ui.events.ChartTargetEvent;
+import com.mesalu.viv2.android_ui.ui.main.IChartTargetHandler;
+import com.mesalu.viv2.android_ui.ui.main.MainViewModel;
 import com.mesalu.viv2.android_ui.ui.main.data_entry.PetEntryDialogFragment;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -90,7 +93,7 @@ public class PetFragment extends Fragment {
                 // those callbacks execute on.
                 if (recyclerAdapter != null) recyclerAdapter.clearSelectedItem();
 
-                chartTargetHandler.signalChartTarget(null, ChartTargetEvent.ViewModifier.HIDE); // Declare we're done with the chart
+                //chartTargetHandler.signalChartTarget(null, ChartTargetEvent.ViewModifier.HIDE); // Declare we're done with the chart
             }
         };
 
@@ -133,12 +136,18 @@ public class PetFragment extends Fragment {
         super.onActivityCreated(savedInstanceState);
         ViewModelProvider provider = new ViewModelProvider(requireActivity());
         viewModel = provider.get(PetInfoViewModel.class);
-        chartTargetHandler = provider.get(MainActivityViewModel.class); // TODO: better dependency management
+        chartTargetHandler = provider.get(MainViewModel.class); // TODO: better dependency management
 
         final ProgressBar progressBar = getView().findViewById(R.id.loading);
         progressBar.setVisibility(View.VISIBLE);
 
         viewModel.getIdsObservable().observe(getViewLifecycleOwner(), idList -> {
+            if (idList == null) {
+                if (recyclerAdapter != null)
+                    recyclerAdapter.updateIdList(new ArrayList<>());
+                return;
+            }
+
             for (Integer i : idList) Log.d("PetFragment", "Got id: " + i.toString());
 
             // attach an adapter to the recycler view.

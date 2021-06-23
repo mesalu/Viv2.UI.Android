@@ -1,4 +1,4 @@
-package com.mesalu.viv2.android_ui.ui.main;
+package com.mesalu.viv2.android_ui.ui.main.nav_fragments;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
@@ -21,6 +21,8 @@ import com.mesalu.viv2.android_ui.data.model.Environment;
 import com.mesalu.viv2.android_ui.data.model.NodeController;
 import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.ui.events.ChartTargetEvent;
+import com.mesalu.viv2.android_ui.ui.main.IChartTargetHandler;
+import com.mesalu.viv2.android_ui.ui.main.MainViewModel;
 import com.mesalu.viv2.android_ui.ui.main.data_entry.PetMigrationDialogFragment;
 import com.mesalu.viv2.android_ui.ui.widgets.ControllerCard;
 
@@ -57,7 +59,7 @@ public class EnvironmentFragment extends Fragment {
         ViewModelProvider provider = new ViewModelProvider(requireActivity());
         envInfoViewModel = provider.get(EnvironmentInfoViewModel.class);
         petInfoViewModel = provider.get(PetInfoViewModel.class);
-        chartTargetHandler = provider.get(MainActivityViewModel.class); // TODO: better dependency management
+        chartTargetHandler = provider.get(MainViewModel.class); // TODO: better dependency management
 
         final RecyclerView recycler = requireView().findViewById(R.id.recycler_view);
         final ProgressBar progressBar = requireView().findViewById(R.id.loading);
@@ -113,7 +115,7 @@ public class EnvironmentFragment extends Fragment {
         List<NodeController> controllers;
 
         public Adapter(List<NodeController> controllerList) {
-            controllers = new ArrayList<>(controllerList);
+            controllers = (controllerList == null) ? new ArrayList<>() :  new ArrayList<>(controllerList);
         }
 
         @NonNull

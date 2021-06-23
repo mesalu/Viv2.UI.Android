@@ -3,7 +3,7 @@ package com.mesalu.viv2.android_ui.ui.main;
 import com.mesalu.viv2.android_ui.ui.charting.ChartTarget;
 import com.mesalu.viv2.android_ui.ui.events.ChartTargetEvent;
 
-interface IChartTargetHandler {
+public interface IChartTargetHandler {
     /**
      * Signals the main activity, or consuming activity, that a chart should be configured
      * to show data as specified by `target.

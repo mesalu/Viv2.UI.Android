@@ -1,4 +1,4 @@
-package com.mesalu.viv2.android_ui.ui.main;
+package com.mesalu.viv2.android_ui.ui.main.nav_fragments;
 
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LiveData;
@@ -8,7 +8,11 @@ import androidx.lifecycle.Observer;
 import com.mesalu.viv2.android_ui.data.EnvInfoRepository;
 import com.mesalu.viv2.android_ui.data.model.Environment;
 import com.mesalu.viv2.android_ui.data.model.NodeController;
+import com.mesalu.viv2.android_ui.ui.main.CommonSignalAwareViewModel;
+import com.mesalu.viv2.android_ui.ui.main.HybridCollectionLiveData;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.List;
 
 public class EnvironmentInfoViewModel extends CommonSignalAwareViewModel {
@@ -21,6 +25,12 @@ public class EnvironmentInfoViewModel extends CommonSignalAwareViewModel {
         envInfoRepository = EnvInfoRepository.getInstance();
         environmentLiveData = new HybridCollectionLiveData<>(Environment::getId);
         controllers = new MutableLiveData<>();
+    }
+
+    @Override
+    public void clearUserSensitiveData() {
+        controllers.setValue(null);
+        environmentLiveData.clear();
     }
 
     public LiveData<List<NodeController>> getControllersObservable() {

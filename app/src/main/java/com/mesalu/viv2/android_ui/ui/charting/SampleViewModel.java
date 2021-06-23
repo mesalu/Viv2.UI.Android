@@ -54,6 +54,13 @@ public class SampleViewModel extends BaseViewModel {
     }
 
     @Override
+    public void clearUserSensitiveData() {
+        samples.setValue(new ArrayList<>());
+        for (SampleZone zone: SampleZone.values())
+            subSequences.get(zone).setValue(new ArrayList<>());
+    }
+
+    @Override
     protected void onCleared() {
         super.onCleared();
         stopBackgroundProcessing();

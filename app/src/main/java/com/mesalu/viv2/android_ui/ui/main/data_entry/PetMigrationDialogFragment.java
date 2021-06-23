@@ -18,8 +18,8 @@ import com.mesalu.viv2.android_ui.data.Result;
 import com.mesalu.viv2.android_ui.data.model.Environment;
 import com.mesalu.viv2.android_ui.data.model.NodeController;
 import com.mesalu.viv2.android_ui.data.model.Pet;
-import com.mesalu.viv2.android_ui.ui.main.EnvironmentInfoViewModel;
-import com.mesalu.viv2.android_ui.ui.main.PetInfoViewModel;
+import com.mesalu.viv2.android_ui.ui.main.nav_fragments.EnvironmentInfoViewModel;
+import com.mesalu.viv2.android_ui.ui.main.nav_fragments.PetInfoViewModel;
 
 import java.util.function.Function;
 import java.util.stream.Collectors;

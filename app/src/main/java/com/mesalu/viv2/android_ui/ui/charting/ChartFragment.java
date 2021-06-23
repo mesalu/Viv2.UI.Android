@@ -45,7 +45,12 @@ import java.util.stream.Collectors;
  * from EnvDataSamples.
  */
 public class ChartFragment extends Fragment {
-    public static final String MGR_TAG = "ChatFragment";
+    private static final String KEY_SUB_BUNDLE = "ChartFragment";
+    private static final String KEY_DATA_START = "long_dataStart";
+    private static final String KEY_ID_TYPE = "int_targetIdTypeIndicator";
+    private static final String KEY_ID = "obj_targetId";
+
+    public static final String MGR_TAG = "ChartFragment";
     private SampleViewModel viewModel;
 
     private LineChart lineChart;
@@ -72,6 +77,47 @@ public class ChartFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (savedInstanceState != null) {
+            Bundle subBundle = savedInstanceState.getBundle(KEY_SUB_BUNDLE);
+            if (subBundle != null) {
+                if (subBundle.containsKey(KEY_DATA_START))
+                    dataStart = Instant.ofEpochSecond(subBundle.getLong(KEY_DATA_START));
+
+                if (subBundle.containsKey(KEY_ID_TYPE) && subBundle.containsKey(KEY_ID)) {
+                    int targetTypeOrd = subBundle.getInt(KEY_ID_TYPE);
+                    if (targetTypeOrd == ChartTarget.TargetType.PET.ordinal()) {
+                        Integer boxed = subBundle.getInt(KEY_ID);
+                        currentTarget = new ChartTarget(boxed, ChartTarget.TargetType.PET);
+                    }
+                    else if (targetTypeOrd == ChartTarget.TargetType.ENVIRONMENT.ordinal()) {
+                        UUID id = UUID.fromString(subBundle.getString(KEY_ID));
+                        currentTarget = new ChartTarget(id, ChartTarget.TargetType.ENVIRONMENT);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        Bundle subBundle = new Bundle();
+
+        if (dataStart != null)
+            subBundle.putLong(KEY_DATA_START, dataStart.getEpochSecond());
+
+        if (currentTarget != null) {
+            subBundle.putInt(KEY_ID_TYPE, currentTarget.targetType.ordinal());
+
+            if (currentTarget.targetType == ChartTarget.TargetType.PET)
+                subBundle.putInt(KEY_ID, (Integer) currentTarget.id);
+            else if (currentTarget.targetType == ChartTarget.TargetType.ENVIRONMENT)
+                subBundle.putString(KEY_ID, ((UUID) currentTarget.id).toString());
+        }
+
+        outState.putBundle(KEY_SUB_BUNDLE, subBundle);
     }
 
     @Override
@@ -101,9 +147,13 @@ public class ChartFragment extends Fragment {
         viewModel = new ViewModelProvider(this).get(SampleViewModel.class);
 
         // listen to the line data observables.
-        for (SampleZone zone : SampleZone.values()) {
+        // As the view model could already contain data (e.g. configuration change), mark all zones
+        // as pending before observing. (needs to be done entirely before any observers get set)
+        for (SampleZone zone : SampleZone.values())
+            dataPending[zone.ordinal()] = true;
+
+        for (SampleZone zone : SampleZone.values())
             viewModel.getLineData(zone).observe(getViewLifecycleOwner(), data -> onLineDataUpdate(zone, data));
-        }
     }
 
     /**

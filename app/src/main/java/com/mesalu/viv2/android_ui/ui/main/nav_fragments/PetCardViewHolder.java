@@ -1,4 +1,4 @@
-package com.mesalu.viv2.android_ui.ui.main;
+package com.mesalu.viv2.android_ui.ui.main.nav_fragments;
 
 import android.content.Context;
 import android.view.View;

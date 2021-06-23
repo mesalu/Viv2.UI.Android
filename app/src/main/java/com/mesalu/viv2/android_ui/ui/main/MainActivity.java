@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavController;
 import androidx.navigation.NavDestination;
@@ -29,6 +28,8 @@ import com.mesalu.viv2.android_ui.ui.charting.ChartFragment;
 import com.mesalu.viv2.android_ui.ui.charting.ChartTarget;
 import com.mesalu.viv2.android_ui.ui.events.ChartTargetEvent;
 import com.mesalu.viv2.android_ui.ui.login.LoginActivity;
+import com.mesalu.viv2.android_ui.ui.main.nav_fragments.EnvironmentInfoViewModel;
+import com.mesalu.viv2.android_ui.ui.main.nav_fragments.PetInfoViewModel;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -43,6 +44,8 @@ import java.util.concurrent.TimeUnit;
  * as signing out, or entering a pet-specific management activity.
  */
 public class MainActivity extends AppCompatActivity {
+    private static final String KEY_CHART_VISIBLE = "bool_chartContainerVisible";
+
     private static final int LOGIN_REQUEST_CODE = 1;
 
     // used to drive the silent refresh loop under the UI
@@ -54,59 +57,22 @@ public class MainActivity extends AppCompatActivity {
     //       So that will be a bug to be on the lookout for.
     private ScheduledExecutorService executorService;
 
-    private MainActivityViewModel stateViewModel;
+    private MainViewModel stateViewModel;
     private FloatingActionButton fab;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        stateViewModel = new ViewModelProvider(this).get(MainActivityViewModel.class);
-        stateViewModel.getChartTargetEvent().observe(this, this::onChartTargetEvent);
-
-        // Auth token life cycle management:
-        // whenever we get a new token set, schedule a refresh for
-        // when it expires - handle initializing if necessary when receiving token set..
-        LoginRepository.getInstance().getObservable().observe(this,
-                tokenSet -> {
-                    if (tokenSet != null) {
-                        if (executorService == null || executorService.isShutdown())
-                            startBackgroundTasks();
-                        else
-                            scheduleRefreshForExpiry(tokenSet.getAccessExpiry());
-                    }
-                });
-
         // if we're not logged in at all, then hand off to the login activity.
         if (!LoginRepository.getInstance().isLoggedIn()) {
             startLoginActivity();
         }
 
-        BottomNavigationView navView = findViewById(R.id.nav_view);
-        navView.setBackground(null);
-
-        // Passing each menu ID as a set of Ids because each
-        // menu should be considered as top level destinations.
-        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
-                R.id.navigation_pet, R.id.navigation_env)
-                .build();
-
-        final NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
-        NavigationUI.setupWithNavController(navView, navController);
-
-        fab = findViewById(R.id.fab);
-        fab.setOnClickListener(v -> {
-            CommonSignalAwareViewModel activeViewModel = getActiveFragmentViewModel();
-            if (activeViewModel != null) activeViewModel.signalFab();
-            else {
-                Snackbar snackbar = Snackbar
-                        .make(v, "Fab: Hello world", Snackbar.LENGTH_SHORT);
-                snackbar.show();
-            }
-        });
+        stateViewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        initializeDataListeners();
+        initializeNavBarAndFab();
 
         // Setup the swipe-refresh callback:
         SwipeRefreshLayout swipeRefreshLayout = findViewById(R.id.swipe_refresh);
@@ -116,6 +82,14 @@ public class MainActivity extends AppCompatActivity {
             // TODO: need a callback for invoking setRefreshing at the best time.
             swipeRefreshLayout.setRefreshing(false);
         });
+
+        attemptRestoreViewState(savedInstanceState);
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(KEY_CHART_VISIBLE, findViewById(R.id.chart_fragment_container).getVisibility() == View.VISIBLE);
     }
 
     @Override
@@ -130,7 +104,9 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_logout) {
             LoginRepository.getInstance().logout();
 
-            // TODO: clear view models (at least the ones that contain user specific data.)
+            ViewModelProvider provider = new ViewModelProvider(this);
+            provider.get(PetInfoViewModel.class).clearUserSensitiveData();
+            provider.get(EnvironmentInfoViewModel.class).clearUserSensitiveData();
 
             startLoginActivity();
         }
@@ -311,17 +287,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onChartTargetEvent(ChartTargetEvent event) {
-        ChartTarget target = event.consume();
+        Log.d("MainActivity", "onChartTargetEvent");
+
+        // Peek instead of consume as a stop gap. Allows us (as the only consumer of the event)
+        // to restore state on configuration changes. To be replaced when a better view state
+        // system ins implemented.
+        ChartTarget target = event.peek();
         Fragment fragment = getSupportFragmentManager()
                 .findFragmentByTag(ChartFragment.MGR_TAG);
 
         // check if the event has already be consumed.
+        // if it was, and we're not restoring state, then just simply return.
         if (target == null && event.peek() != null) return;
 
+        final ChartTarget finalizedTarget = target;
         switch (event.getViewModifier()) {
             case SHOW:
                 // ensure the fragment exists
-                if (fragment == null)
+                if (fragment == null) {
                     getSupportFragmentManager().beginTransaction()
                             .setReorderingAllowed(true)
                             .add(R.id.chart_fragment_container, ChartFragment.class, null, ChartFragment.MGR_TAG)
@@ -330,13 +313,15 @@ public class MainActivity extends AppCompatActivity {
                                 ChartFragment chartFragment = (ChartFragment) getSupportFragmentManager()
                                         .findFragmentByTag(ChartFragment.MGR_TAG);
 
-                                if (chartFragment != null) chartFragment.resetToTarget(target);
-                                else Log.e("MainActivity", "onCommit Runnable not suitable for this use");
+                                if (chartFragment != null) chartFragment.resetToTarget(finalizedTarget);
+                                else
+                                    Log.e("MainActivity", "onCommit Runnable not suitable for this use");
 
                                 findViewById(R.id.chart_fragment_container).setVisibility(View.VISIBLE);
                                 if (fab.isOrWillBeShown()) fab.hide();
                             })
                             .commit();
+                }
                 // the target is set when the fragment is ready, so no need to roll through.
                 // (would be slick though.)
                 break;
@@ -348,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
 
             case HIDE:
                 // remove the chart fragment.
-                if (fragment != null)
+                if (fragment != null) {
                     getSupportFragmentManager().beginTransaction()
                             .setReorderingAllowed(true)
                             .remove(fragment)
@@ -357,7 +342,62 @@ public class MainActivity extends AppCompatActivity {
                                 if (fab.isOrWillBeHidden()) fab.show();
                             })
                             .commit();
+                }
+
                 else findViewById(R.id.chart_fragment_container).setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Sets up LiveData listeners.
+     */
+    private void initializeDataListeners() {
+        stateViewModel.getChartTargetEvent().observe(this, this::onChartTargetEvent);
+
+        // Auth token life cycle management:
+        // whenever we get a new token set, schedule a refresh for
+        // when it expires - handle initializing if necessary when receiving token set..
+        LoginRepository.getInstance().getObservable().observe(this,
+                tokenSet -> {
+                    if (tokenSet != null) {
+                        if (executorService == null || executorService.isShutdown())
+                            startBackgroundTasks();
+                        else
+                            scheduleRefreshForExpiry(tokenSet.getAccessExpiry());
+                    }
+                });
+    }
+
+    private void initializeNavBarAndFab() {
+        BottomNavigationView navView = findViewById(R.id.nav_view);
+        navView.setBackground(null);
+
+        AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.navigation_pet, R.id.navigation_env)
+                .build();
+
+        final NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment);
+        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+        NavigationUI.setupWithNavController(navView, navController);
+
+        fab = findViewById(R.id.fab);
+        fab.setOnClickListener(v -> {
+            CommonSignalAwareViewModel activeViewModel = getActiveFragmentViewModel();
+            if (activeViewModel != null) activeViewModel.signalFab();
+            else {
+                Snackbar snackbar = Snackbar
+                        .make(v, "Fab: Hello world", Snackbar.LENGTH_SHORT);
+                snackbar.show();
+            }
+        });
+    }
+
+    private void attemptRestoreViewState(@Nullable Bundle savedInstanceState) {
+        if (savedInstanceState == null) return;
+
+        if (savedInstanceState.getBoolean(KEY_CHART_VISIBLE)) {
+            findViewById(R.id.chart_fragment_container).setVisibility(View.VISIBLE);
+            fab.hide();
         }
     }
 }

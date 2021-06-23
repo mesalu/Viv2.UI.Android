@@ -12,14 +12,17 @@ import com.mesalu.viv2.android_ui.ui.events.ChartTargetEvent;
  * particular actions - such as showing a chart fragment - but otherwise its used to store a
  * view state for the MainActivity.
  */
-public class MainActivityViewModel extends BaseViewModel implements IChartTargetHandler {
+public class MainViewModel extends BaseViewModel implements IChartTargetHandler {
     private final MutableLiveData<ChartTargetEvent> chartTargetEvent;
 
-    public MainActivityViewModel() {
+    public MainViewModel() {
         chartTargetEvent = new MutableLiveData<>();
     }
 
-    protected LiveData<ChartTargetEvent> getChartTargetEvent() {
+    @Override
+    public void clearUserSensitiveData() {}
+
+    LiveData<ChartTargetEvent> getChartTargetEvent() {
         return chartTargetEvent;
     }
 

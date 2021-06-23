@@ -1,4 +1,4 @@
-package com.mesalu.viv2.android_ui.ui.main;
+package com.mesalu.viv2.android_ui.ui.main.nav_fragments;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -7,7 +7,10 @@ import com.mesalu.viv2.android_ui.data.PetInfoRepository;
 import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.data.model.PreliminaryPetInfo;
 import com.mesalu.viv2.android_ui.data.model.Species;
+import com.mesalu.viv2.android_ui.ui.main.CommonSignalAwareViewModel;
+import com.mesalu.viv2.android_ui.ui.main.HybridCollectionLiveData;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +33,13 @@ public class PetInfoViewModel extends CommonSignalAwareViewModel {
         pets = new HybridCollectionLiveData<>(Pet::getId);
         species = new MutableLiveData<>();
         petIds = new MutableLiveData<>();
+    }
+
+    @Override
+    public void clearUserSensitiveData() {
+        pets.clear();
+        species.setValue(null);
+        petIds.setValue(null);
     }
 
     /**

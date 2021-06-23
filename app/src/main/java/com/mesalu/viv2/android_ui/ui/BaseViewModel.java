@@ -11,8 +11,21 @@ import androidx.lifecycle.ViewModel;
  * a rebound view holder's content.)
  * So this base class provides a method to reduce boilerplate in one-off observers.
  */
-public class BaseViewModel extends ViewModel {
+public abstract class BaseViewModel extends ViewModel {
+    /**
+     * Clears any data that is contained within the view model instance that is tied to a particular
+     * user or may be considered sensitive.
+     */
+    public abstract void clearUserSensitiveData();
 
+    /**
+     * Creates a wrapper around observer that ensures that the observer is only invoked once
+     * and then removed from the observable
+     * @param observable an observable live data instance.
+     * @param owner the lifecycle owner to use when observing on observable.
+     * @param observer the observer to be invoked once
+     * @param <T> the target data type
+     */
     public <T> void observeOnce(LiveData<T> observable, LifecycleOwner owner, Observer<T> observer) {
         observable.observe(owner, new Observer<T>() {
             @Override

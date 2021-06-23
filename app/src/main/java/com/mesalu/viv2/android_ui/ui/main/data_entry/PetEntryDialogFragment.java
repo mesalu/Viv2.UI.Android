@@ -15,7 +15,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.mesalu.viv2.android_ui.R;
 import com.mesalu.viv2.android_ui.data.model.Pet;
 import com.mesalu.viv2.android_ui.data.model.Species;
-import com.mesalu.viv2.android_ui.ui.main.PetInfoViewModel;
+import com.mesalu.viv2.android_ui.ui.main.nav_fragments.PetInfoViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
